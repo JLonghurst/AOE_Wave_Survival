@@ -7,13 +7,13 @@ function Scenario() {
     SetPlayerStartWood(1, 0);
     SetPlayerStartGold(1, 0);
     SetPlayerStartStone(1, 0);
-    SetPlayerMaxPop(1, 100);
+    SetPlayerMaxPop(1, 200);
     SetAllTech(true);
     
     global $tower_location;
     $tower_location = array(8, 9);
     $banned_units = [U_VILLAGER_F, U_VILLAGER_M, U_BLACKSMITH, U_MARKET, U_UNIVERSITY, 
-        U_MONASTERY, U_WATCH_TOWER];
+        U_MONASTERY, U_WATCH_TOWER, U_HOUSE];
     SetPlayerDisabilityUnitList(1, $banned_units);
     
     $banned_techs = [
@@ -22,24 +22,24 @@ function Scenario() {
     SetPlayerDisabilityTechList(1, $banned_techs);
     
     $times_noob = [
-        20, 30, 60, 60, // Dark Age
-        120, 60, 30, 60, 30, 60, 60, 60, 60, // Feudal Age
-        180, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, // Castle Age
-        60, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90 // Imperial Age
-       ]; 
+        30, 30, 60, 60, // Dark Age
+        120, 60, 60, 60, 60, 60, 60, 60, 60, // Feudal Age
+        240, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, // Castle Age
+        240, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 160, 160 // Imperial Age
+    ]; 
     
     $times_easy = [
         30, 30, 60, 60, // Dark Age
-        120, 90, 90, 90, 90, 90, 90, 90, 90, // Feudal Age
-        240, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, // Castle Age
+        120, 60, 60, 60, 60, 60, 60, 60, 60, // Feudal Age
+        240, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, // Castle Age
         240, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 160, 160 // Imperial Age
     ]; 
         
     $times_hero = [
         20, 30, 60, 60, // Dark Age
         120, 60, 30, 60, 30, 60, 60, 60, 60, // Feudal Age
-        180, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, // Castle Age
-        60, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90 // Imperial Age
+        120, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, // Castle Age
+        120, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 // Imperial Age
     ]; 
     
     $tech_data = $GLOBALS["tech_data"];
@@ -48,7 +48,7 @@ function Scenario() {
     
     $mode_times  = [$times_noob, $times_easy, $times_hero];
     
-    $DEBUG = false;
+    $DEBUG = true;
     if ($DEBUG) {
         Trig("Kill Zone 2 ", 1, 1);
             Cond_Timer(1);
@@ -65,7 +65,7 @@ function Scenario() {
         SetPlayerStartFood(1, 10000);
         SetPlayerStartWood(1, 10000);
         SetPlayerStartGold(1, 10000);
-        SetPlayerStartStone(1, 200);
+        SetPlayerStartStone(1, 10000);
     }
     
     function Age_Triggers() {
@@ -112,13 +112,12 @@ function Scenario() {
             Efft_Research(2, T_CHAIN_MAIL_ARMOR);
             Efft_Research(2, T_BALLISTICS);
             Efft_Research(2, T_EAGLE_WARRIOR);
-            Efft_Act("Vil Spawn");
+            Efft_Act("Vil Spawn 5");
             Efft_Act("Building Spawn Castle");
             Efft_Chat(1, "<YELLOW> Bonus 400 food for feudal advancement! Get a castle maybe? It's your life");
             Efft_Give(1, 400, STONE);  
             // second row techs
             Efft_RemoveO(0, array(37, 38));
-            Efft_RemoveO(0, array(37, 40));
             Efft_RemoveO(0, array(37, 42));   
         
         Trig("Imperial Age", 0, 0);
@@ -129,7 +128,7 @@ function Scenario() {
             Efft_Research(2, T_BLAST_FURNACE);
             Efft_Research(2, T_PLATE_BARDING_ARMOR);
             Efft_Research(2, T_PLATE_MAIL_ARMOR);
-            Efft_Act("Vil Spawn");
+            Efft_Act("Vil Spawn 5");
             Efft_Act("Building Spawn Imperial");
             Efft_Display(30, 0, 
                     "<BLUE> IMERIAL! waaaaa. 10 vils #imperial #swag #datmicrodoe.");
@@ -152,13 +151,25 @@ function Scenario() {
             Efft_Create(1, U_ARCHERY_RANGE, array(25, 5));
             Efft_Create(1, U_STABLE, array(25, 10));
             Efft_Create(1, U_BARRACKS, array(25, 15));
+            $houseSpawns = [
+                array(115, 13), array(117, 13), 
+                array(115, 15), array(117, 15), array(119, 15)
+            ];
+            foreach($houseSpawns as $spawn) {
+                Efft_Create(1, U_HOUSE, $spawn);
+            }
             
         Trig("Building Spawn Imperial", 0, 1);
             Efft_Create(1, U_MONASTERY, array(30, 20));
             Efft_Create(1, U_SIEGE_WORKSHOP, array(30, 25));
             Efft_Create(1, U_ARCHERY_RANGE, array(30, 5));
             Efft_Create(1, U_STABLE, array(30, 10));
-            Efft_Create(1, U_BARRACKS, array(30, 15));            
+            Efft_Create(1, U_BARRACKS, array(30, 15));   
+            for($row = 17; $row < 28; $row += 2) {
+                Efft_Create(1, U_HOUSE, array(115, $row));
+                Efft_Create(1, U_HOUSE, array(117, $row));
+                Efft_Create(1, U_HOUSE, array(119, $row));                
+            }
     }
     Age_Triggers();
     
@@ -168,8 +179,9 @@ function Scenario() {
             Cond_Researched(1, T_CASTLE_AGE);
             Cond_Researched(1, T_FLETCHING);
             Efft_RemoveO(0, array(31, 38));
+           
         Trig("Arbalest Upgrade Delete");
-            Cond_Researched(1, T_CASTLE_AGE);
+            Cond_Researched(1, T_IMPERIAL_AGE);
             Cond_Researched(1, T_BODKIN_ARROW);
             Efft_RemoveO(0, array(31, 46));
         
@@ -179,7 +191,7 @@ function Scenario() {
             Cond_Researched(1, T_SCALE_MAIL_ARMOR);
             Efft_RemoveO(0, array(31, 40));
         Trig("Champian Upgrade Delete");
-            Cond_Researched(1, T_CASTLE_AGE);
+            Cond_Researched(1, T_IMPERIAL_AGE);
             Cond_Researched(1, T_CHAIN_MAIL_ARMOR);
             Efft_RemoveO(0, array(31, 48));
 
@@ -189,7 +201,7 @@ function Scenario() {
             Cond_Researched(1, T_SCALE_BARDING_ARMOR);
             Efft_RemoveO(0, array(31, 42));    
         Trig("Paladin Upgrade Delete");
-            Cond_Researched(1, T_CASTLE_AGE);
+            Cond_Researched(1, T_IMPERIAL_AGE);
             Cond_Researched(1, T_CHAIN_BARDING_ARMOR);
             Efft_RemoveO(0, array(31, 50));  
             
@@ -197,17 +209,31 @@ function Scenario() {
             Cond_Researched(1, T_IMPERIAL_AGE);
             Cond_Researched(1, T_ONAGER);
             Efft_RemoveO(0, array(31, 54));   
+            
+        // tower upgrades    
+        Trig("Tower Upgrade 2 Delete");
+            Cond_Researched(1, T_CASTLE_AGE);
+            Cond_Researched(1, T_MURDER_HOLES);
+            Efft_RemoveO(0, array(37, 40));
+        
+        Trig("Tower Upgrade 3 Delete");  
+            Cond_Researched(1, T_IMPERIAL_AGE);
+            Cond_Researched(1, T_MASONRY);
+            Efft_RemoveO(1, array(37, 51));
     }
     Block_Deleters();
        
     function Store_Triggers() {
         global $tower_location;
         Trig("Vil Spawn 5", 0, 0);
-        Efft_ChangeView(1, array(37, 12));
-        $vil_spawns = Spawn_Box(array(37, 12), array(37, 16));
-        foreach($vil_spawns as $spawn) {
-            Efft_Create(1, U_VILLAGER_M, $spawn);
-        }
+        //Efft_ChangeView(1, array(37, 12));
+        $i = 0;
+        foreach(Spawn_Box(array(37, 12), array(37, 16)) as $spawn) {
+            ($i % 2 == 0) ? $unit =  U_VILLAGER_M : $unit =  U_VILLAGER_F;
+            Efft_Create(1, $unit, $spawn);
+            $i++;
+        }         
+        
         Trig("Bomb Area", 0, 0);
             Efft_KillO(2, [array(6, 7), array(10, 11)]);
             Efft_ChangeView(1, $tower_location);
@@ -216,25 +242,45 @@ function Scenario() {
                 Efft_KillU(0,U_MACAW, $spawn);
             }
             
-        Trig("Castle Creation", 0, 0);   
-            Efft_Create(1, U_CASTLE, array(11, 3));
+        Trig("Castle Creation", 0, 0);
+            // remove stone heads
+            Efft_RemoveO(0, [array(9, 0), array(12, 3)]);
+            // place castle
+            Efft_Create(1, U_CASTLE, array(11, 2));
             
-        Trig("Guard Tower Upgrade", 0, 0);
-            Efft_Research(1, T_GUARD_TOWER);
+        Trig("Tower Upgrade 1", 0, 0);
             Efft_Deact("Tower Health Regain");
             Efft_Act("Tower Health Regain x4");
-            Efft_RangeY(1, 10, Y_BUILDING, $tower_location);
-            Efft_APY(1, 10, Y_BUILDING, $tower_location);
+            Efft_Research(1, T_MURDER_HOLES);
+            Efft_RangeY(1, 2, Y_BUILDING, $tower_location);
+            Efft_APY(1, 5, Y_BUILDING, $tower_location);
+           
+        Trig("Tower Upgrade 2", 0, 0);   
+            Efft_Deact("Tower Health Regain x4");
+            Efft_Act("Tower Health Regain x10");
+            Efft_RangeY(1, 5, Y_BUILDING, $tower_location);
+            Efft_APY(1, 5, Y_BUILDING, $tower_location); 
+       
+        Trig("Tower Upgrade 3", 0, 0);   
+            Efft_Deact("Tower Health Regain x4");
+            Efft_Act("Tower Health Regain x10");
+            Efft_RangeY(1, 5, Y_BUILDING, $tower_location);
+            Efft_APY(1, 5, Y_BUILDING, $tower_location);              
+            
+        Trig("Tower Health Regain", 1, 1);
+            Cond_Timer(1);
+            Efft_DamageY(1, -1, Y_BUILDING, $tower_location);
+
+        Trig("Tower Health Regain x4", 0, 1);
+            Cond_Timer(1);
+            Efft_DamageY(1, -4, Y_BUILDING, $tower_location); 
+            
+        Trig("Tower Health Regain x10", 0, 1);
+            Cond_Timer(1);
+            Efft_DamageY(1, -10, Y_BUILDING, $tower_location);  
             
         Trig("Add 1000 Health", 0, 0);
             Efft_HPY(1, 1000, Y_BUILDING, $tower_location);
-            
-        Trig("Health Regain Upgrade", 0, 0);     
-            
-            
-        Trig("Keep Upgrade", 0, 0);
-            Efft_Research(1, T_KEEP);
-            Efft_HPY(1, 2250, Y_BUILDING, $tower_location);
     }
     Store_Triggers();
     
@@ -259,6 +305,7 @@ function Scenario() {
         $cost = $data[1];  
         $techs = $data[2];
         $unit_type = $data[3];
+        $trigger = $data[4];
         $relic_spot = $data[5];
         // x is offset by 2 on map
         $location = array($relic_spot[0] - 2, $relic_spot[1]);
@@ -276,7 +323,7 @@ function Scenario() {
                 Efft_KillO(1, $location);
                 Efft_Tribute(1, $cost[$j], R_STONE_STORAGE);
                 Efft_Chat(1, "<YELLOW> Bought $name for $cost[$j] Stone");
-                Efft_Act($data[4]);
+                Efft_Act($trigger);
                 $j++; 
                 // [j = j + 1]
                 if ($j < count($cost)) {
@@ -300,6 +347,9 @@ function Scenario() {
             }
             Efft_Chat(1, "<YELLOW> Bought $name for $cost Stone");
             Efft_Tribute(1, $cost, R_STONE_STORAGE);
+            if (strcmp($trigger, "") !== 0) {
+                Efft_Act($trigger);
+            }
         }
     }
     
@@ -315,24 +365,23 @@ function Scenario() {
         Trig("Enemy Town Center Invunerable", 1, 1);
             Efft_InvincibleU(2, U_TOWN_CENTER); 
 
-        Trig("Tower Health Regain", 1, 1);
-            Cond_Timer(1);
-            Efft_DamageY(1, -1, Y_BUILDING, $tower_location);
+//        Trig("Vil Spawn", 0, 0);
+//            Efft_ChangeView(1, array(37, 12));
+//            foreach(Spawn_Box(array(37, 9), array(37, 18)) as $spawn) {
+//                Efft_Create(1, U_VILLAGER_F, $spawn);
+//            }
 
-        Trig("Tower Health Regain x4", 0, 1);
-            Cond_Timer(1);
-            Efft_DamageY(1, -4, Y_BUILDING, $tower_location); 
-            
-        Trig("Vil Spawn", 0, 0);
-            Efft_ChangeView(1, array(37, 12));
-            foreach(Spawn_Box(array(37, 9), array(37, 18)) as $spawn) {
-                Efft_Create(1, U_VILLAGER_F, $spawn);
-            }
-
-        Trig("Game Over", 1, 0);
+        Trig("Tower Death", 1, 0, 1, "111", "Do not let your"
+                . "tower be destroyed by the enemy units");
             Cond_NotOwnU(1, 1, U_WATCH_TOWER);
-            Cond_NotOwnU(1, 1, U_GUARD_TOWER);
-            Cond_NotOwnU(1, 1, U_KEEP);
+            Efft_Chat(1, "<RED> You lost your tower! gg fam");
+            Efft_Display(10, 0, "<RED> You lost your tower! gg fam");
+            Efft_Display(10, 1, "<RED> You lost your tower! gg fam");
+            Efft_Display(10, 2, "<RED> You lost your tower! gg fam");
+            Efft_Act("Game Over");
+           
+        Trig("Game Over", 0, 0);
+            Cond_Timer(10);
             Efft_DeclareVictory(2);
     }
     static_needs();
@@ -346,6 +395,7 @@ function Scenario() {
     $game_units = [U_MILITIA, U_LONG_SWORDSMAN, U_CHAMPION];
     $mode_choice_area = [array(37, 27), array(41, 27)];
     $mode_select_area = [array(36, 22), array(42, 27)];
+    $mode_select_area_o = [array(36, 22), array(42, 26)];
     for ($i = 0; $i < count($game_modes); $i++) {
         $cur_mode = $game_modes[$i];
         Trig("Start $cur_mode Mode");
@@ -357,11 +407,11 @@ function Scenario() {
         Trig("$cur_mode Mode Starter");
             Cond_InAreaU(1, 1, $game_units[$i], $mode_choice_area);
             Efft_Chat(1, $chats[$i]);
-            Efft_KillO(1, $mode_select_area);
-            Efft_KillO(0, $mode_select_area);
+            Efft_KillY(1, Y_MILITARY, $mode_select_area);
+            Efft_KillO(0, $mode_select_area_o);
             Efft_Deact("Default Mode Starter");  
             foreach ($game_modes as $mode) {
-                if ($mode != $game_modes[$i]) {
+                if ($mode != $cur_mode) {
                     Efft_Deact("Start $mode Mode");
                     Efft_Deact("$mode Mode Starter");
                 }
@@ -371,8 +421,8 @@ function Scenario() {
     Trig("Default Mode Starter");
         Cond_Timer(25);
         Efft_Display(10, 0, "<RED> You didn't pick in time, so Hero mode was selected");
-        Efft_KillO(1, $mode_select_area);
-        Efft_KillO(0, $mode_select_area); 
+        Efft_KillY(1, Y_MILITARY, $mode_select_area);
+        Efft_KillO(0, $mode_select_area_o); 
         Efft_Deact("Start Noob Mode");
         Efft_Deact("Start Easy Mode");
         
@@ -399,21 +449,21 @@ function Scenario() {
             foreach(Spawn_Box(array(40, 7), array(49, 7)) as $spawn) {
                 Efft_Create(1, U_VILLAGER_M, $spawn);
             }
-            foreach(Spawn_Box(array(40, 8), array(49, 8)) as $spawn) {
+            foreach(Spawn_Box(array(45, 8), array(49, 8)) as $spawn) {
                 Efft_Create(1, U_VILLAGER_F, $spawn);
-            }
+            }  
 
         Trig("Hard Start Game", 0, 0);
             Efft_Tribute(1, -200, R_GOLD_STORAGE);
             Efft_Tribute(1, -200, R_FOOD_STORAGE);
             Efft_Tribute(1, -200, R_WOOD_STORAGE);
             Efft_Tribute(1, -200, R_STONE_STORAGE);   
+            $i = 0;
             foreach(Spawn_Box(array(40, 7), array(49, 7)) as $spawn) {
-                Efft_Create(1, U_VILLAGER_M, $spawn);
-            }
-            foreach(Spawn_Box(array(45, 8), array(49, 8)) as $spawn) {
-                Efft_Create(1, U_VILLAGER_F, $spawn);
-            }           
+                ($i % 2 == 0) ? $unit =  U_VILLAGER_M : $unit =  U_VILLAGER_F;
+                Efft_Create(1, $unit, $spawn);
+                $i++;
+            }         
     }
     Game_Starters();
       
@@ -445,7 +495,7 @@ function Scenario() {
                 $points = 150;
             } else if ($units == "Imperial Age") {
                 $points = 200;
-            } else {
+            } else if ($units != "Dark Age") {
                 Efft_Display($times[$cur_round], 0, "Round $cur_round: $units");
             }
             Efft_Give(1, $points, STONE);
