@@ -103,7 +103,7 @@ function Scenario() {
             Efft_RemoveO(0, array(37, 32));
             Efft_RemoveO(0, array(37, 34));            
             Efft_Act("Vil Spawn 5");
-            Efft_Chat(1, "<YELLOW> Bonus 200 stone for feudal advancement! #youwillneedit");
+            Efft_Chat(1, "<GREEN> Bonus 200 stone for feudal advancement! #youwillneedit");
             Efft_Give(1, 200, STONE);
             Efft_Act("Building Spawn Feudal");
 
@@ -120,7 +120,7 @@ function Scenario() {
             Efft_Research(2, T_EAGLE_WARRIOR);
             Efft_Act("Vil Spawn 5");
             Efft_Act("Building Spawn Castle");
-            Efft_Chat(1, "<YELLOW> Bonus 400 food for feudal advancement! Get a castle maybe? It's your life");
+            Efft_Chat(1, "<GREEN> Bonus 400 stone for advancement! Get a castle maybe? It's your life");
             Efft_Give(1, 400, STONE);  
             // second row techs
             Efft_RemoveO(0, array(37, 38));
@@ -138,7 +138,7 @@ function Scenario() {
             Efft_Act("Building Spawn Imperial");
             Efft_Display(30, 0, 
                     "<BLUE> IMERIAL! waaaaa. 10 vils #imperial #swag #datmicrodoe.");
-            Efft_Chat(1, "<YELLOW> Bonus 600 food for feudal advancement! How's the eco?");
+            Efft_Chat(1, "<YELLOW> Bonus 600 food for Imperial advancement! How's the eco?");
             Efft_Give(1, 600, STONE);  
             // Seige upgrade Line
             Efft_RemoveO(0, array(31, 52));
@@ -232,13 +232,13 @@ function Scenario() {
     function Store_Triggers() {
         global $tower_location;
         Trig("Vil Spawn 5", 0, 0);
-        //Efft_ChangeView(1, array(37, 12));
-        $i = 0;
-        foreach(Spawn_Box(array(37, 12), array(37, 16)) as $spawn) {
-            ($i % 2 == 0) ? $unit =  U_VILLAGER_M : $unit =  U_VILLAGER_F;
-            Efft_Create(1, $unit, $spawn);
-            $i++;
-        }         
+            //Efft_ChangeView(1, array(37, 12));
+            $i = 0;
+            foreach(Spawn_Box(array(37, 12), array(37, 16)) as $spawn) {
+                ($i % 2 == 0) ? $unit =  U_VILLAGER_M : $unit =  U_VILLAGER_F;
+                Efft_Create(1, $unit, $spawn);
+                $i++;
+            }         
         
         Trig("Bomb Area", 0, 0);
             Efft_KillO(2, [array(6, 7), array(10, 11)]);
@@ -297,7 +297,7 @@ function Scenario() {
         $cost = $data[1];
         $location = $data[5];
         if (is_array($cost)) {
-            Efft_NameU(0, $name . " ($cost[0] stone)", U_RELIC, $location);
+            Efft_NameU(0, $name . " ($cost[1] stone)", U_RELIC, $location);
         } else {
             Efft_NameU(0, $name . " ($cost stone)", U_RELIC, $location);
         }
@@ -310,7 +310,6 @@ function Scenario() {
         $name = $data[0];
         $cost = $data[1];  
         $techs = $data[2];
-        $unit_type = $data[3];
         $trigger = $data[4];
         $relic_spot = $data[5];
         // x is offset by 2 on map
@@ -319,27 +318,30 @@ function Scenario() {
         $respawn =  array($location[0] - 2, $location[1]); 
         // If the effect can be used more than once
         if (is_array($cost)) {
-            $j = 0;
+            // by convention, the respawn unit is the first index 
+            // if the cost is an array
+            $unit_type = $data[0];
+            $j = 1;
             while (true) {
-                // first one is on, all the rest are off
+                // first one starts out on, all the rest are off
                 Trig("$name $j", ($j == 0) ? 1 : 0, 0);
-                Cond_InAreaO(1, 1, $location);
-                Cond_Timer(4);
-                Cond_Accumulate(1, $cost[$j], R_STONE_STORAGE);
-                Efft_KillO(1, $location);
-                Efft_Tribute(1, $cost[$j], R_STONE_STORAGE);
-                Efft_Chat(1, "<YELLOW> Bought $name for $cost[$j] Stone");
-                Efft_Act($trigger);
-                $j++; 
-                // [j = j + 1]
-                if ($j < count($cost)) {
-                    Efft_NameU(0, $name . " " . "({$cost[$j]} stone)", U_RELIC, $relic_spot);
-                    Efft_Create(1, $unit_type, $respawn);
-                    Efft_Act("$name $j");
-                } else {
-                    Efft_NameU(0, "No More Spawns Availible for $name", U_RELIC, $relic_spot);
-                    break;
-                }
+                    Cond_InAreaO(1, 1, $location);
+                    Cond_Timer(4);
+                    Cond_Accumulate(1, $cost[$j], R_STONE_STORAGE);
+                    Efft_Tribute(1, $cost[$j], R_STONE_STORAGE);
+                    Efft_KillO(1, $location);
+                    Efft_Chat(1, "<YELLOW> Bought $name for $cost[$j] Stone");
+                    Efft_Act($trigger);
+                    $j++; 
+                    // [j = j + 1]
+                    if ($j < count($cost)) {
+                        Efft_NameU(0, $name . " " . "({$cost[$j]} stone)", U_RELIC, $relic_spot);
+                        Efft_Create(1, $unit_type, $respawn);
+                        Efft_Act("$name $j");
+                    } else {
+                        Efft_NameU(0, "No More Spawns Availible for $name", U_RELIC, $relic_spot);
+                        break;
+                    }
             }
         } 
         // single use technology effect
@@ -370,12 +372,6 @@ function Scenario() {
         // Town Center is indestrucable
         Trig("Enemy Town Center Invunerable", 1, 1);
             Efft_InvincibleU(2, U_TOWN_CENTER); 
-
-//        Trig("Vil Spawn", 0, 0);
-//            Efft_ChangeView(1, array(37, 12));
-//            foreach(Spawn_Box(array(37, 9), array(37, 18)) as $spawn) {
-//                Efft_Create(1, U_VILLAGER_F, $spawn);
-//            }
 
         Trig("Tower Death", 1, 0, 1, "111", "Do not let your"
                 . "tower be destroyed by the enemy units");
@@ -445,8 +441,9 @@ function Scenario() {
     Trig("Intro Prompt", 1, 0);
         Efft_Research(1, T_TOWN_WATCH);
         Efft_Research(1, T_LOOM);
+        // Mode selection area
         Efft_ChangeView(1, array(37, 27));
-        Efft_Display(25, 0, "Welcome to AOE2 Wave Survival. The Game will begin at 00:30, prepare for carnage");        
+        Efft_Display(25, 0, "Welcome to AOE2 Wave Survival. The Game will begin at 00:30, prepare for carnage!");        
         Efft_Display(25, 1, 
                 "You have until 00:25 to choose your difficulty level before the default of Hero mode is selected");      
         Efft_Display(25, 2, "Task an infandry unit in between the flags to select your difficulty level");
@@ -490,48 +487,45 @@ function Scenario() {
         $points = 50; // points awarded per round
         $game_time = 30; // current game time (30 for time to select game mode)
         for ($cur_round = 0; $cur_round < count($times) - 1; $cur_round++) {
-            $round_info = $round_data[$cur_round];
-            $units = $round_info[0];
             $next_round = $cur_round + 1;
+            $units = $round_data[$cur_round][0];
+            $next_units = $round_data[$next_round][0];
             // Get times and time info
             $game_time += $times[$cur_round];
             $game_min = floor($game_time / 60);
             $game_sec = $game_time % 60;
             // Time correction for display in the instructions
-            if ($game_sec < 10) {
-                $game_sec = "0".$game_sec;
-            }
-            // hack to get the times to line up
-            $next_time = $times[$cur_round] + 1;
+            if ($game_sec < 10) $game_sec = "0".$game_sec;
             // Create This Round
             Trig("$mode Round $cur_round", 0, 0);
-            if ($units == "Feudal Age") {
-                $points = 100;
-            } else if ($units == "Castle Age") {
-                $points = 150;
-            } else if ($units == "Imperial Age") {
-                $points = 200;
-            } else if ($units != "Dark Age") {
-                Efft_Display($times[$cur_round], 0, "Round $cur_round: $units");
-            }
-            Efft_Give(1, $points, STONE);
-            Efft_Chat(1, "41");
-            Efft_Chat(1, "<GREEN> $points stone for round advancement");
-            Efft_Display($times[$cur_round], 1, "Round $next_round begins at "
-                    . "$game_min:$game_sec in $times[$cur_round] seconds");
-            Efft_Display($times[$cur_round], 2, "Up Next: {$round_data[$next_round][0]}");
-            Efft_Act("Round $cur_round Spawn");
-            Efft_Act("$mode Round $cur_round-$next_round Timer");
+                if ($units == "Feudal Age") {
+                    $points = 100;
+                } else if ($units == "Castle Age") {
+                    $points = 150;
+                } else if ($units == "Imperial Age") {
+                    $points = 200;
+                } else if ($units != "Dark Age") {
+                    Efft_Display($times[$cur_round], 0, "Round $cur_round: $units");
+                }
+                Efft_Give(1, $points, STONE);
+                Efft_Chat(1, "41");
+                Efft_Chat(1, "<GREEN> $points stone for round advancement");
+                Efft_Display($times[$cur_round], 1, "Round $next_round begins at "
+                        . "$game_min:$game_sec in $times[$cur_round] seconds");
+                Efft_Display($times[$cur_round], 2, "Up Next: $next_units");
+                Efft_Act("Round $cur_round Spawn");
+                Efft_Act("$mode Round $cur_round-$next_round Timer");
             // Create The Timer for next round
             Trig("$mode Round $cur_round-$next_round Timer", 0, 0);
-            Cond_Timer($next_time);
-            Efft_Act("$mode Round $next_round");
+                // add one to get times to line up correctly
+                Cond_Timer($times[$cur_round] + 1);
+                Efft_Act("$mode Round $next_round");
         }  
         // final round
         Trig("$mode Round 40", 0, 0);
-        Efft_Act("Round 40 Spawn");
-        Efft_Give(1, $points, STONE);
-        Efft_Display($times[count($times) - 1], 3, "Round 40 final round");
+            Efft_Act("Round 40 Spawn");
+            Efft_Give(1, $points, STONE);
+            Efft_Display($times[count($times) - 1], 3, "Round 40 final round");
     }
 
     for ($i = 0; $i < count($round_data); $i++) {
