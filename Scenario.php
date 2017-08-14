@@ -9,7 +9,13 @@ function Scenario() {
     SetPlayerStartStone(1, 0);
     SetPlayerMaxPop(1, 200);
     SetAllTech(true);
-    
+//    SetMessageVictory($text)
+//    SetMessageFailure($text)
+//    SetMessageHints($text)
+//    SetMessageHistory($text)
+//    SetMessageObjective($text)
+//    SetMessageScouts($text)
+//    
     global $tower_location;
     $tower_location = array(8, 9);
     $banned_units = [U_VILLAGER_F, U_VILLAGER_M, U_BLACKSMITH, U_MARKET, U_UNIVERSITY, 
@@ -22,10 +28,10 @@ function Scenario() {
     SetPlayerDisabilityTechList(1, $banned_techs);
     
     $times_noob = [
-        30, 30, 60, 60, // Dark Age
-        120, 60, 60, 60, 60, 60, 60, 60, 60, // Feudal Age
-        240, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, // Castle Age
-        240, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 160, 160 // Imperial Age
+        20, 30, 60, 60, // Dark Age
+        120, 60, 30, 60, 60, 60, 60, 60, 60, // Feudal Age
+        120, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, // Castle Age
+        120, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 // Imperial Age
     ]; 
     
     $times_easy = [
@@ -37,7 +43,7 @@ function Scenario() {
         
     $times_hero = [
         20, 30, 60, 60, // Dark Age
-        120, 60, 30, 60, 30, 60, 60, 60, 60, // Feudal Age
+        120, 60, 30, 60, 60, 60, 60, 60, 60, // Feudal Age
         120, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, // Castle Age
         120, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 // Imperial Age
     ]; 
@@ -374,14 +380,24 @@ function Scenario() {
         Trig("Tower Death", 1, 0, 1, "111", "Do not let your"
                 . "tower be destroyed by the enemy units");
             Cond_NotOwnU(1, 1, U_WATCH_TOWER);
-            Efft_Chat(1, "<RED> You lost your tower! gg fam");
+            Efft_Chat(1, "26");
             Efft_Display(10, 0, "<RED> You lost your tower! gg fam");
             Efft_Display(10, 1, "<RED> You lost your tower! gg fam");
             Efft_Display(10, 2, "<RED> You lost your tower! gg fam");
             Efft_Act("Game Over");
-           
+            Efft_Act("End Chat");
+            
+        Trig("End Chat", 0, 0);
+            Cond_Timer(5);
+            Efft_Chat(1, "18");
+            Efft_Act("End Chat 2");
+            
+        Trig("End Chat 2", 0, 0);
+            Cond_Timer(5);
+            Efft_Chat(1, "27");        
+            
         Trig("Game Over", 0, 0);
-            Cond_Timer(10);
+            Cond_Timer(15);
             Efft_DeclareVictory(2);
     }
     static_needs();
@@ -459,7 +475,7 @@ function Scenario() {
             Efft_Tribute(1, -200, R_WOOD_STORAGE);
             Efft_Tribute(1, -200, R_STONE_STORAGE);   
             $i = 0;
-            foreach(Spawn_Box(array(40, 7), array(49, 7)) as $spawn) {
+            foreach(Spawn_Box(array(40, 7), array(44, 7)) as $spawn) {
                 ($i % 2 == 0) ? $unit =  U_VILLAGER_M : $unit =  U_VILLAGER_F;
                 Efft_Create(1, $unit, $spawn);
                 $i++;
@@ -499,6 +515,7 @@ function Scenario() {
                 Efft_Display($times[$cur_round], 0, "Round $cur_round: $units");
             }
             Efft_Give(1, $points, STONE);
+            Efft_Chat(1, "41");
             Efft_Chat(1, "<GREEN> $points stone for round advancement");
             Efft_Display($times[$cur_round], 1, "Round $next_round begins at "
                     . "$game_min:$game_sec in $times[$cur_round] seconds");
