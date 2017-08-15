@@ -10,10 +10,8 @@
 
 
 # --- Compiler configuration --- #
-// HD version
-SCX::$scenarios_path = 'C:\Program Files (x86)\Steam\steamapps\common\Age2HD\resources\_common\scenario';
-// Base Version
-//SCX::$scenarios_path = 'C:\Program Files (x86)\Steam\steamapps\common\Age2HD\Scenario';
+
+SCX::$scenarios_path = 'C:\Program Files (x86)\Steam\steamapps\common\Age2HD\resources\_common\scenario';		
 SCX::$input_scenario = 'TEST.scx';
 SCX::$output_name = 'WAVE_SURVIVAL.scx';
 SCX::$hide_triggers = false; # Hide triggers names
@@ -553,11 +551,9 @@ class SCX {
         # terrain / view
         if($module)
             $unpack = unpack('l2',fread($stream,8));
-        else {
-            $tester1 = $serial['player'][1]['view'][1][1];
-            $tester2 = $serial['player'][1]['view'][1][0];
-            $packed .= pack('l2',$tester1,$tester2);
-        }
+        else
+            $packed .= pack('l2',$serial['player'][1]['view'][1][1],$serial['player'][1]['view'][1][0]);
+    
     	# terrain / type
     	if($module)
     		fread($stream,4);

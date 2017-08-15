@@ -25,9 +25,14 @@
     $spawns2_20 = Spawn_Box(array(4, 66), array(13, 67));
 
     $spawns3_30 = Spawn_Box(array(4, 68), array(13, 69));
+    
+    $spawn1_60 = Spawn_Box(array(4, 66), array(13, 71));
+    
+    $spawns100 = Spawn_Box(array(4, 62), array(13, 71));
     // big spawn
     $spawnsB_5 = Spawn_Box(array(7, 70), array(11, 70));
-
+    
+    // [Round Label, Units to spawn, spawn locations]
     $round_data = [
         array("Dark Age", "", ""),
         array("1 Milita", U_MILITIA, $spawns1_1), 
@@ -57,54 +62,73 @@
         array("20 War Elephants 20 Longbows", array(U_WAR_ELEPHANT, U_LONGBOWMAN), array($spawns20, $spawns2_20)), 
         array("Imperial Age", "", ""), 
         array("30 Hussar 5 Trebs", array(U_HUSSAR, U_TREBUCHET_P), array($spawns3_30, $spawnsB_5)), 
-        array("30 Cavalier", U_PALADIN, $spawns3_30), 
-        array("30 Arbs", U_ARBALEST, $spawns3_30), 
-        array("30 Two Handed Sword", U_TWO_HANDED_SWORDSMAN, $spawns3_30), 
-        array("20 hand cannons 5 bombard cannons", array(U_BOMBARD_CANNON, U_HAND_CANNONEER), array($spawns1_5, $spawns2_20)), 
-        array("20 Heavy Camel 20 Cavalier", array(U_HEAVY_CAMEL, U_CAVALIER), array($spawns20, $spawns2_20)), 
-        array("40 Halberdier", array(U_HALBERDIER, U_HALBERDIER), array($spawns20, $spawns2_20)), 
-        array("15 Siege Onager 10 Heavy Scorpion", array(U_HEAVY_SCORPION, U_SIEGE_ONAGER), array($spawns1_10, $spawns2_10)), 
-        array("30 Heavy Cal Arch and 10 Siege Rams", array(U_SIEGE_RAM, U_HEAVY_CAVALRY_ARCHER), array($spawns1_10, $spawns3_30)), 
-        array("20 Champion 20 Elite Eagles", array(U_CHAMPION, U_ELITE_EAGLE_WARRIOR), array($spawns2_20, $spawns20)),
-        array("30 Paladin", U_PALADIN, $spawns3_30), 
-        array("30 Petards", U_PETARD, $spawns3_30), 
-        array("Full imperial trash line (skrims, halbs, hussar)", array(U_HALBERDIER, U_HUSSAR, U_SKIRMISHER), array($spawns20, $spawns2_20, $spawns3_30)), 
+        array("60 Cavalier", U_CAVALIER, $spawn1_60), 
+        array("60 Arbalest", U_ARBALEST, $spawn1_60), 
+        array("60 Two Handed Sword", U_TWO_HANDED_SWORDSMAN, $spawn1_60), 
+        array("60 hand cannons 20 bombard cannons", array(U_BOMBARD_CANNON, U_HAND_CANNONEER), array($spawn1_60, $spawns20)), 
+        array("20 Heavy Camel 60 Palidin", array(U_HEAVY_CAMEL, U_PALADIN), array($spawns20, $spawn1_60)), 
+        array("60 Halberdier", U_HALBERDIER, $spawn1_60), 
+        array("20 Siege Onager 20 Heavy Scorpion", array(U_HEAVY_SCORPION, U_SIEGE_ONAGER), array($spawns20, $spawns2_20)), 
+        array("60 Heavy Cal Arch and 20 Siege Rams", array(U_SIEGE_RAM, U_HEAVY_CAVALRY_ARCHER), array($spawns20, $spawn1_60)), 
+        array("20 Champion 60 Elite Eagles", array(U_CHAMPION, U_ELITE_EAGLE_WARRIOR), array($spawns20, $spawn1_60)),
+        array("60 Paladin", U_PALADIN, $spawn1_60), 
+        array("100 Petards", U_PETARD, $spawns100), 
+        array("Full imperial trash line (skrims, halbs, hussar)", array(U_HALBERDIER, U_HUSSAR, U_ELITE_SKIRMISHER), array($spawns20, $spawns2_20, $spawns3_30)), 
         array("Full imperial gold line (arbs, champion, palidin)", array(U_CHAMPION, U_PALADIN, U_ARBALEST), array($spawns20, $spawns2_20, $spawns3_30))
     ];
-    // [relic label, cost, array of technologies to research, unit (if respawning), trigger event, relic location]
-    $tech_data = [
-        // Archer Line
-        array("Fletching and Padded Archer Armor", 300, array(T_FLETCHING, T_PADDED_ARCHER_ARMOR), 0, "", array(34, 30)),
-        array("Man At Arms, Forging, Scale Mail Armor", 300, array(T_MAN_AT_ARMS, T_FORGING, T_SCALE_MAIL_ARMOR), 0, "", array(34, 32)),
-        array("Bloodlines, Scale Barding Armor", 300, array(T_BLOODLINES, T_SCALE_BARDING_ARMOR), 0, "", array(34, 34)),
-        
-        array("Crossbow, Elite Skirms, Balistics, Bodkin, and Leather Archer Armor", 600, array(
-            T_CROSSBOWMAN, T_ELITE_SKIRMISHER, T_BODKIN_ARROW, T_BALLISTICS, T_LEATHER_ARCHER_ARMOR), 0, "", array(34, 38)),
-        array("Long Swordsman, Eagle Scout, Pikemen, Chain Mail Armor", 600, array(
-            T_LONG_SWORDSMAN, T_EAGLE_SCOUT_A, T_PIKEMAN, T_CHAIN_MAIL_ARMOR), 0, "", array(34, 40)),
-         array("Light Cavalry, Chain Barding Armor, Iron Casting", 600, array(
-            T_LIGHT_CAVALRY, T_CHAIN_BARDING_ARMOR, T_IRON_CASTING), 0, "", array(34, 42)),       
-        
-        array("Arbalest, Heavy Cav Archer, Bracer, Ring Archer Armor", 500, array(
-            T_ARBALEST, T_HEAVY_CAVALRY_ARCHER, T_BRACER, T_RING_ARCHER_ARMOR), 0, "", array(34, 46)),
-        array("Champian, Halbs, Plate Mail Armor, Blast Furnace", 1000, array(
-            T_TWO_HANDED_SWORDSMAN, T_CHAMPION, T_HALBERDIER, T_PLATE_MAIL_ARMOR, T_BLAST_FURNACE), 0, "", array(34, 48)),
-        array("Palidin, Hussar, Heavy Camel, Plate Barding Armor", 1500, array(
-            T_CAVALIER, T_PALADIN, T_HUSSAR, T_HEAVY_CAMEL, T_PLATE_BARDING_ARMOR), 0, "", array(34, 50)),
-        array("Imperial Seige", 500, array(T_HEAVY_SCORPION, T_ONAGER, T_CAPPED_RAM), 0, "", array(34, 52)),
-        array("Post-Imperial Seige", 500, array(T_SIEGE_RAM, T_SIEGE_ONAGER), 0, "", array(34, 54)),
-        array("Chemistry", 750, array(T_CHEMISTRY), 0, "", array(34, 56)),
+    
+   // [relic label, cost, technology requirements, technologies to research, trigger name (or none), relic location]
+   $tech_data = [
+       // Archer Line
+       array("Fletching and Padded Archer Armor", 300, array(T_FEUDAL_AGE),
+               array(T_FLETCHING, T_PADDED_ARCHER_ARMOR), "", array(34, 30)),
+       array("Man At Arms, Forging, Scale Mail Armor", 300, array(T_FEUDAL_AGE),
+               array(T_MAN_AT_ARMS, T_FORGING, T_SCALE_MAIL_ARMOR), "", array(34, 32)),
+       array("Bloodlines, Scale Barding Armor", 300, array(T_FEUDAL_AGE),
+               array(T_BLOODLINES, T_SCALE_BARDING_ARMOR), "", array(34, 34)),
+      
+       array("Crossbow, Elite Skirms, Balistics, Bodkin, and Leather Archer Armor", 600, array(T_CASTLE_AGE, T_FLETCHING),
+               array(T_CROSSBOWMAN, T_ELITE_SKIRMISHER, T_BODKIN_ARROW, T_BALLISTICS, T_LEATHER_ARCHER_ARMOR), "", array(34, 38)),
+       array("Long Swordsman, Eagle Scout, Pikemen, Chain Mail Armor", 600,  array(T_CASTLE_AGE, T_FORGING),
+               array(T_LONG_SWORDSMAN, T_EAGLE_SCOUT_A, T_PIKEMAN, T_CHAIN_MAIL_ARMOR), "", array(34, 40)),
+       array("Light Cavalry, Chain Barding Armor, Iron Casting", 600, array(T_CASTLE_AGE, T_SCALE_BARDING_ARMOR),
+               array(T_LIGHT_CAVALRY, T_CHAIN_BARDING_ARMOR, T_IRON_CASTING), "", array(34, 42)),      
+      
+       array("Arbalest, Heavy Cav Archer, Bracer, Ring Archer Armor", 500, array(T_IMPERIAL_AGE, T_BODKIN_ARROW),
+               array(T_ARBALEST, T_HEAVY_CAVALRY_ARCHER, T_BRACER, T_RING_ARCHER_ARMOR), "", array(34, 46)),
+       array("Champian, Halbs, Plate Mail Armor, Blast Furnace", 1000, array(T_IMPERIAL_AGE, T_CHAIN_MAIL_ARMOR),
+               array(T_TWO_HANDED_SWORDSMAN, T_CHAMPION, T_HALBERDIER, T_PLATE_MAIL_ARMOR, T_BLAST_FURNACE), "", array(34, 48)),
+       array("Palidin, Hussar, Heavy Camel, Plate Barding Armor", 1500, array(T_IMPERIAL_AGE, T_IRON_CASTING),
+               array(T_CAVALIER, T_PALADIN, T_HUSSAR, T_HEAVY_CAMEL, T_PLATE_BARDING_ARMOR), "", array(34, 50)),
+
+       array("Imperial Seige, Siege Engineers", 500, array(T_IMPERIAL_AGE),
+               array(T_HEAVY_SCORPION, T_ONAGER, T_CAPPED_RAM, T_SIEGE_ENGINEERS), "", array(34, 52)),
+       array("Post-Imperial Seige", 500, array(T_IMPERIAL_AGE, T_SIEGE_ENGINEERS),
+               array(T_SIEGE_RAM, T_SIEGE_ONAGER),  "", array(34, 54)),
+       array("Chemistry", 750, array(T_IMPERIAL_AGE), array(T_CHEMISTRY), "", array(34, 56)),
         
         // 2nd row
-        array("Hail Mary (kill all units on field)", 500, array(), 0, "Hail Mary", array(41, 42)),
+        //array("Hail Mary (kill all units on field)", 500, array(), "Hail Mary", array(41, 42)),
         
         // 3rd row trigger activators
-        array("Spawn 5 Villagers", array(200, 400, 600, 800, 1000), array(), U_VILLAGER_M, "Vil Spawn 5", array(48, 30)),
-        array("Clear Tower of Enemies", array(100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), array(), U_PETARD, "Bomb Area", array(48, 32)),
-        array("Add 1000 Health to your Tower", array(100, 200, 300, 400, 500), array(), U_MONK, "Add 1000 Health", array(48, 34)),
-        array("Create Castle", 1000, array(), U_FURIOUS_THE_MONKEY_BOY, "Castle Creation", array(100, 100)),
-        array("Guard Tower, Tower Attack x2, Tower Regain x4", 300, array(), U_MONK, "Guard Tower Upgrade", array(40, 32)),
-        array("Tower Health Regeneration x2", 150, array(), U_MONK, "Health Regain Upgrade", array(100, 100)),
-        array("Keep, Tower Health 6000", 500, array(T_KEEP), U_MONK, "Keep Upgrade", array(100, 100))
+        array("Spawn 5 Villagers", array(U_VILLAGER_M, 200, 300, 500, 600), array(T_LOOM),
+                array(), "Vil Spawn 5", array(48, 30)),
+        array("Clear Tower of Enemies", array(U_PETARD, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), array(T_LOOM),
+                array(), "Bomb Area", array(48, 32)),
+        array("+1000 Tower Health", array(U_MONK, 100, 200, 300, 400, 500), array(T_LOOM),
+                array(), "Add 1000 Health", array(48, 34)),
+        
+        array("Murder Holes, Tower Attack/Range +5, Health Regain 4/sec", 300, array(T_FEUDAL_AGE),
+                array(T_MURDER_HOLES), "Tower Upgrade 1", array(40, 32)),
+        
+        array("Create Castle", 1000, array(T_CASTLE_AGE),
+                array(), "Castle Creation", array(40, 38)),
+        array("Masonry, Tower Attack/Range +5, Health Regain 10/sec", 400, array(T_CASTLE_AGE, T_MURDER_HOLES),
+                array(T_MASONRY), "Tower Upgrade 2", array(40, 40)),
+        array("Sanctity, Redemption, Atonement, and Herbal Medicine", 500, array(T_CASTLE_AGE),
+                array(T_SANCTITY, T_ATONEMENT, T_REDEMPTION, T_HERBAL_MEDICINE), "", array(40, 42)),
+        
+        array("Architecture, Tower Attack/Range +5, Health Regain 20/sec",  500, array(T_IMPERIAL_AGE, T_MASONRY),
+                array(T_ARCHITECTURE), "Tower Upgrade 3", array(40, 51))
     ];
 ?>
