@@ -48,7 +48,7 @@ function Scenario() {
     
     $mode_times  = [$times_noob, $times_easy, $times_hero];
     
-    $DEBUG = true;
+    $DEBUG = false;
     if ($DEBUG) {
         Trig("Kill Zone 2 ", 1, 1);
             Cond_Timer(1);
@@ -125,7 +125,12 @@ function Scenario() {
         Trig("Building Spawn Feudal", 0, 1);
             Efft_Create(1, U_ARCHERY_RANGE, array(20, 5));
             Efft_Create(1, U_STABLE, array(20, 10));
-    
+            for($row = 7; $row < 11; $row += 2) {
+                Efft_Create(1, U_HOUSE, array(115, $row));
+                Efft_Create(1, U_HOUSE, array(117, $row));
+                Efft_Create(1, U_HOUSE, array(119, $row));                
+            }
+            
         Trig("Building Spawn Castle", 0, 1);
             Efft_Create(1, U_MONASTERY, array(20, 20));
             Efft_Create(1, U_SIEGE_WORKSHOP, array(20, 25));
@@ -134,12 +139,10 @@ function Scenario() {
             Efft_Create(1, U_ARCHERY_RANGE, array(25, 5));
             Efft_Create(1, U_STABLE, array(25, 10));
             Efft_Create(1, U_BARRACKS, array(25, 15));
-            $houseSpawns = [
-                array(115, 13), array(117, 13), 
-                array(115, 15), array(117, 15), array(119, 15)
-            ];
-            foreach($houseSpawns as $spawn) {
-                Efft_Create(1, U_HOUSE, $spawn);
+            for($row = 11; $row < 17; $row += 2) {
+                Efft_Create(1, U_HOUSE, array(115, $row));
+                Efft_Create(1, U_HOUSE, array(117, $row));
+                Efft_Create(1, U_HOUSE, array(119, $row));                
             }
             
         Trig("Building Spawn Imperial", 0, 1);
@@ -297,12 +300,6 @@ function Scenario() {
         Trig("Enemy Town Center Invunerable", 1, 1);
             Efft_InvincibleU(2, U_TOWN_CENTER); 
 
-//        Trig("Vil Spawn", 0, 0);
-//            Efft_ChangeView(1, array(37, 12));
-//            foreach(Spawn_Box(array(37, 9), array(37, 18)) as $spawn) {
-//                Efft_Create(1, U_VILLAGER_F, $spawn);
-//            }
-
         Trig("Tower Death", 1, 0, 1, "111", "Do not let your"
                 . "tower be destroyed by the enemy units");
             Cond_NotOwnU(1, 1, U_WATCH_TOWER);
@@ -310,11 +307,23 @@ function Scenario() {
             Efft_Display(10, 0, "<RED> You lost your tower! gg fam");
             Efft_Display(10, 1, "<RED> You lost your tower! gg fam");
             Efft_Display(10, 2, "<RED> You lost your tower! gg fam");
+            Efft_Act("End Game Chat 1");
+            
+        Trig("End Game Chat 1", 0, 0);
+            Cond_Timer(3);
+            Efft_Chat(1, 26);
+            Efft_Act("End Game Chat 2");
+            
+        Trig("End Game Chat 2", 0, 0);
+            Cond_Timer(5);
+            Efft_Chat(1, 27);
             Efft_Act("Game Over");
-           
+        
         Trig("Game Over", 0, 0);
-            Cond_Timer(10);
+            Cond_Timer(6);
             Efft_DeclareVictory(2);
+            
+            
     }
     static_needs();
     
