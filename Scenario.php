@@ -1,8 +1,7 @@
 <?php
 include('Data/wave_data.php');
 
-function Scenario() {
-    
+function Scenario() {       
     SetPlayerStartFood(1, 0);
     SetPlayerStartWood(1, 0);
     SetPlayerStartGold(1, 0);
@@ -27,7 +26,7 @@ function Scenario() {
         240, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, // Castle Age
         240, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 160, 160 // Imperial Age
     ]; 
-    
+   
     $times_easy = [
         30, 30, 60, 60, // Dark Age
         120, 60, 60, 60, 60, 60, 60, 60, 60, // Feudal Age
@@ -47,13 +46,13 @@ function Scenario() {
     $round_data = $GLOBALS["round_data"];
     
     $mode_times  = [$times_noob, $times_easy, $times_hero];
-    
+
     $DEBUG = false;
     if ($DEBUG) {
         Trig("Kill Zone 2 ", 1, 1);
             Cond_Timer(1);
-            Cond_InAreaY(2, 1, Y_MILITARY, [array(0, 60), array(17, 70)]);
-            Efft_KillY(2, Y_MILITARY, [array(0, 60), array(17, 70)]);
+            Cond_InAreaY(2, 1, Y_MILITARY, [array(0, 60), array(17, 90)]);
+            Efft_KillY(2, Y_MILITARY, [array(0, 60), array(17, 90)]);
         // Times and delete for round debugging purposes
         $debug_times = [
             5, 5, 5, 5,
@@ -67,6 +66,71 @@ function Scenario() {
         SetPlayerStartGold(1, 10000);
         SetPlayerStartStone(1, 10000);
     }
+    
+    function End_Game_Sandbox() {
+        $unique_spawn_data = $GLOBALS["unique_spawn_data"];
+
+        Trig("Ship Gaia Convert");
+            Efft_ChangeOwnerO(1, [array(85, 100), array(111, 118)], 0);
+
+        $center1_X = 103;
+        $center1_Y = 110;
+        $spawns_1 = [array($center1_X + 1, $center1_Y), array($center1_X - 1, $center1_Y), 
+                array($center1_X, $center1_Y - 1), array($center1_X, $center1_Y + 1)]; 
+
+        $center2_X = 106;
+        $center2_Y = 113;
+        $spawns_2 = [array($center2_X + 1, $center2_Y), array($center2_X - 1, $center2_Y), 
+                array($center2_X, $center2_Y - 1), array($center2_X, $center2_Y + 1)]; 
+
+        Trig("Initiate1", 0, 1);
+            Cond_Timer(60);
+            Efft_RemoveO(0, array($center1_X - 1, $center1_Y - 1));
+            Efft_Create(0, U_ARCHER, array($center1_X - 1, $center1_Y - 1));
+            Efft_TaskO(0, array($center1_X - 1, $center1_Y - 1), array($center1_X, $center1_Y));
+            Efft_UnloadO(0, array($center1_X, $center1_Y), array($center1_X, $center1_Y));
+            Efft_Create(0, U_HAY_STACK, array($center1_X - 1, $center1_Y - 1)); 
+
+        Trig("Initiate2", 0, 1);
+            Cond_Timer(60);
+            Efft_RemoveO(0, array($center2_X - 1, $center2_Y - 1));
+            Efft_Create(0, U_ARCHER, array($center2_X - 1, $center2_Y - 1));
+            Efft_TaskO(0, array($center2_X - 1, $center2_Y - 1), array($center2_X, $center2_Y));
+            Efft_UnloadO(0, array($center2_X, $center2_Y), array($center2_X, $center2_Y));
+            Efft_Create(0, U_HAY_STACK, array($center2_X - 1, $center2_Y - 1));
+            
+        
+        $spawn_trig_names = array();
+        foreach ($unique_spawn_data as $unique_data) {
+            array_push($spawn_trig_names, $unique_data[0]);
+            Trig($unique_data[0], 0, 0);
+            Efft_Display(60, 0, $unique_data[0]);
+                foreach($unique_data[2] as $spawn) {
+                    Efft_Create(2, $unique_data[1], $spawn);
+                }
+        }
+        $count = 0;
+        for($i = 0; $i < 4; $i++) {
+            for($j = 0; $j < 4; $j++) {
+                Trig("Random $count", 1, 1);
+                    Cond_InAreaO(0, 1, $spawns_1[$i]);
+                    Cond_InAreaO(0, 1, $spawns_2[$j]);
+                    Cond_Timer(3);
+                    Efft_Act("Killer");
+                    Efft_Act("Random $count Spawn");
+                Trig("Random $count Spawn", 0, 0);
+                    Efft_Chat(1, "trig $count"); 
+                    Efft_Act($spawn_trig_names[$count]);
+                $count++;
+            }
+        }
+
+        Trig("Killer", 0, 0);
+           foreach(array_merge($spawns_1, $spawns_2) as $spawn) { 
+               Efft_KillO(0, $spawn);
+           }  
+    }
+    End_Game_Sandbox();
     
     function Age_Triggers() {
         Trig("Dark Age", 0, 0);
@@ -104,7 +168,7 @@ function Scenario() {
             Efft_Research(2, T_EAGLE_WARRIOR);
             Efft_Act("Vil Spawn 5");
             Efft_Act("Building Spawn Castle");
-            Efft_Chat(1, "<YELLOW> Bonus 400 food for feudal advancement! Get a castle maybe? It's your life");
+            Efft_Chat(1, "<YELLOW> Bonus 400 food for castle advancement! Get a castle maybe? It's your life");
             Efft_Give(1, 400, STONE);  
         
         Trig("Imperial Age", 0, 0);
@@ -119,7 +183,7 @@ function Scenario() {
             Efft_Act("Building Spawn Imperial");
             Efft_Display(30, 0, 
                     "<BLUE> IMERIAL! waaaaa. 10 vils #imperial #swag #datmicrodoe.");
-            Efft_Chat(1, "<YELLOW> Bonus 600 food for feudal advancement! How's the eco?");
+            Efft_Chat(1, "<YELLOW> Bonus 600 food for imperial advancement! How's the eco?");
             Efft_Give(1, 600, STONE);  
             
         Trig("Building Spawn Feudal", 0, 1);
@@ -159,7 +223,7 @@ function Scenario() {
     }
     Age_Triggers();
    
-    function Store_Triggers() {
+function Store_Triggers() {
         global $tower_location;
         Trig("Vil Spawn 5", 0, 0);
         //Efft_ChangeView(1, array(37, 12));
@@ -219,7 +283,6 @@ function Scenario() {
             Efft_HPY(1, 1000, Y_BUILDING, $tower_location);
     }
     Store_Triggers();
-
     
     // Hay Stack Effect Triggers
     for ($i = 0; $i < count($tech_data); $i++) {
@@ -359,7 +422,7 @@ function Scenario() {
             }
     }
     
-    Trig("Default Mode Starter");
+    Trig("Default Mode Starter", 1, 0);
         Cond_Timer(25);
         Efft_Display(10, 0, "<RED> You didn't pick in time, so Hero mode was selected");
         Efft_KillY(1, Y_MILITARY, $mode_select_area);
@@ -436,13 +499,13 @@ function Scenario() {
             } else if ($units == "Imperial Age") {
                 $points = 200;
             } else if ($units != "Dark Age") {
-                Efft_Display($times[$cur_round], 0, "Round $cur_round: $units");
+                Efft_Display($times[$cur_round], 0, "<RED> Round $cur_round: $units");
             }
             Efft_Give(1, $points, STONE);
             Efft_Chat(1, "<GREEN> $points stone for round advancement");
-            Efft_Display($times[$cur_round], 1, "Round $next_round begins at "
+            Efft_Display($times[$cur_round], 1, "<ORANGE> Round $next_round begins at "
                     . "$game_min:$game_sec in $times[$cur_round] seconds");
-            Efft_Display($times[$cur_round], 2, "Up Next: {$round_data[$next_round][0]}");
+            Efft_Display($times[$cur_round], 2, "<ORANGE> Up Next: {$round_data[$next_round][0]}");
             Efft_Act("Round $cur_round Spawn");
             Efft_Act("$mode Round $cur_round-$next_round Timer");
             // Create The Timer for next round
@@ -452,9 +515,18 @@ function Scenario() {
         }  
         // final round
         Trig("$mode Round 40", 0, 0);
-        Efft_Act("Round 40 Spawn");
-        Efft_Give(1, $points, STONE);
-        Efft_Display($times[count($times) - 1], 3, "Round 40 final round");
+            Efft_Act("Round 40 Spawn");
+            Efft_Give(1, $points, STONE);
+            Efft_Display($times[count($times) - 1], 3, "Round 40 final round");
+            Efft_Act("Endless Starter");
+            
+        Trig("Endless Starter", 0, 0);
+            Cond_NotInAreaY(2, 1, Y_MILITARY, [array(0, 0), array(17, 90)]);
+            Efft_Display(60, 0, "You have survived all 40 rounds! congrats");
+            Efft_Display(1000, 1, "You are now entering endless mode.");
+            Efft_Display(1000, 2, "Random sets of unique units will spawn until you die");
+            Efft_Act("Initiate1");
+            Efft_Act("Initiate2");
     }
 
     for ($i = 0; $i < count($round_data); $i++) {
@@ -478,6 +550,6 @@ function Scenario() {
             // if the units field is empty, activate age up trigger
             Efft_Act($name);
         }
-    }
+    }  
 }
 ?>
