@@ -1820,6 +1820,22 @@ function SetTerrainCell($x,$y,$cell){
     if(isset($cell['elevation']))SCX::$data_serial['terrain']['data'][$x.','.$y][2] = $cell['elevation'];
 }
 
+function setCell($point, $terrainId) {
+    SetTerrainCell(round($point[0]), round($point[1]), array("terrain" => $terrainId));
+}
+
+function drawCellArea($area, $terrain) {
+    foreach (AreaPts($area) as $point) {
+        $point[0] = round($point[0]);
+        $point[1] = round($point[1]);
+        setCell($point,  $terrain);
+    }
+}
+
+function setElevation($point, $elevation) {
+    SetTerrainCell(round($point[0]), round($point[1]), array("elevation" => $elevation));
+}
+
 /**
  * Return: Array of diplomacy states (one key for each player, exclude $player key)
  **/
@@ -2084,6 +2100,25 @@ function AreaPlayer($P, $A){ #
 		$L[1] = Axis($P, $A[1]);
     }
 	return $L;
+}
+
+/**
+ * MY CUSTOM FUNCTIONS
+ **/  
+function offAreaXRight($a, $x) {
+    return Area($a[1][0] + 1, $a[0][1], $a[1][0] + $x, $a[1][1]);
+}
+
+function offAreaXLeft($a, $x) {
+    return Area($a[0][0] - $x + 1, $a[0][1], $a[0][0], $a[1][1]);
+}
+
+function offAreaYDown($a, $y) {
+    return Area($a[0][0], $a[0][1] - $y, $a[1][0], $a[0][1] - 1);
+}
+
+function offAreaYUp($a, $y) {
+    return Area($a[0][0], $a[1][1] + 1, $a[1][0], $a[1][1] + $y);
 }
 
 /**

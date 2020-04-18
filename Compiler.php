@@ -11,9 +11,9 @@
 
 # --- Compiler configuration --- #
 
-SCX::$scenarios_path = 'C:\Program Files (x86)\Steam\steamapps\common\Age2HD\resources\_common\scenario';		
-SCX::$input_scenario = 'TEST.scx';
-SCX::$output_name = 'WAVE_SURVIVAL.scx';
+SCX::$scenarios_path = 'C:\Users\Jacob\Games\Age of Empires 2 DE\76561198067817983\resources\_common\scenario';		
+SCX::$input_scenario = 'large.scx';
+SCX::$output_name = 'WAVE_SURVIVAL_BUILD_YEET.scx';
 SCX::$hide_triggers = false; # Hide triggers names
 SCX::$resized_format = false; # Resized format will compress the scenario as much as possible for smaller file size
 SCX::$triggers_version = 1.6; # 1.6 is version used by aoc, but you can down it to 1.3 for smaller file size, without removing important features
@@ -38,7 +38,7 @@ SCX::$TgAr = isset($TriggerId) ? $TriggerId:array();
 SCX::init(); # Init SCX converter
 SCX::format(); # Convert SCX scenario to PHP format
 
-Scenario(); # Modify scenario with PHP
+Scenario(SCX::$data_serial); # Modify scenario with PHP
 
 $Conts = '<?php $TriggerId = array(';
 foreach(SCX::$G as $_I => $I) $Conts .= '"' . $_I . '"=>' . $I . ','; # Reference triggers IDs by triggers name
@@ -57,14 +57,10 @@ file_put_contents(SCX::$scenarios_path.'\\'.SCX::$output_name,SCX::$data_head.gz
 SCX::$microtime = microtime(true)- SCX::$microtime;
 
 # Write Results:
-echo '<body>';
-echo '<h3>Results:</h3>';
-echo '<p><b>Microtime:</b> '.SCX::$microtime.'</p>';
-echo '<p><b>Scenario:</b> '.SCX::$output_name.'</p>';
-echo '<p><b>Triggers:</b> '.(SCX::$ID_T + 1).'</p>';
-echo '<p><b>Conditions:</b> '.SCX::$C_CT.'</p>';
-echo '<p><b>Effects:</b> '.SCX::$E_CT.'</p>';
-echo '<p><hr></p>';
+echo "\nTIME: ".SCX::$microtime.'';
+echo "\nFILE: ".SCX::$output_name;
+echo "\nTRIGGERS ".(SCX::$ID_T + 1);
+echo "\nEFFECTS ".SCX::$E_CT."\n";
 
 $TriggerId = array_flip(SCX::$TgAr);
 # Echo triggers not found by activate / deactivate effects
@@ -72,7 +68,7 @@ foreach(SCX::$FK as $Trig => $Fake) echo '<p><b>' . @$TriggerId[$Trig]. '</b> ==
 # Echo unused triggers (off at start and never activated)
 foreach(SCX::$off_triggers as $TrigName => $Data)if(!isset($Data[1]))echo '<p><b>' . $TrigName . '</b> --->>> Unused !</p>';
 echo '</body>';
-
+echo "\n\n\n\n\n";
 # Decompression / Compression of the SCX format
 class SCX {
     # Configuration variables
@@ -187,7 +183,6 @@ class SCX {
     }
 
     static function format($module = true){
-    
         $scfile = self::$scenarios_path.'\\'.self::$input_scenario;
     	
         $padd = pack('c',0);
@@ -871,21 +866,21 @@ class SCX {
         else $array[5] = $N; # Name
 		self::$O[self::$ID_T] = $array;
 		self::$G[$N] = self::$ID_T; # Add the Name and ID of trigger into the list
-  }
+    }
     
-    /*  Efft
-        This function store an effect in current edited trigger $O[$ID_T]['E'][$ID_E]
-        E = Effect Type (Without spaces)
-        I = Array containing the effect's attributes */
-        
+	/*  Efft
+		This function store an effect in current edited trigger $O[$ID_T]['E'][$ID_E]
+		E = Effect Type (Without spaces)
+		I = Array containing the effect's attributes */
+		
 	static function Efft($E,$I){
 		$E = self::$triggers_effects[$E]; # Get effect id from string
 
 		if($E == 20 && ! isset($I['T']))$I['T'] = 20;
-        
+		
 		if($E == 8 || $E == 9){
-            if($E == 8){
-                self::$off_triggers[$I['I']][1] = true;}
+			if($E == 8){
+				self::$off_triggers[$I['I']][1] = true;}
 			if(key_exists($I['I'],self::$TgAr)){
 				$I['I'] = self::$TgAr[$I['I']];}
 			else{
@@ -909,12 +904,12 @@ class SCX {
 		if(key_exists('L',$I))$array[15] = $I['L'][1]; # Location Y
 		if(key_exists('L',$I))$array[16] = $I['L'][0]; # Location X
 		if(key_exists('A',$I)){ # Area
-		  $I['A'] = self::Mapper($I['A']);
-          $array[17] = $I['A'][0][1]; # Point 1 Y
-          $array[18] = $I['A'][0][0]; # Point 1 X
-          $array[19] = $I['A'][1][1]; # Point 2 Y
-          $array[20] = $I['A'][1][0]; # Point 2 X
-        } 
+			$I['A'] = self::Mapper($I['A']);
+			$array[17] = $I['A'][0][1]; # Point 1 Y
+			$array[18] = $I['A'][0][0]; # Point 1 X
+			$array[19] = $I['A'][1][1]; # Point 2 Y
+			$array[20] = $I['A'][1][0]; # Point 2 X
+		} 
 		if(key_exists('G',$I))$array[21] = $I['G']; # Unit Group
 		if(key_exists('Y',$I))$array[22] = $I['Y']; # Unit Type
 		if(key_exists('N',$I))$array[23] = $I['N']; # Panel
@@ -925,11 +920,11 @@ class SCX {
 		self::$E_CT ++; # Increment absolute Effect counter
 		self::$ID_E ++;} # Increment relative Effect counter
 
-    /*  Cond
-        This function store a condition in current edited trigger $O[$ID_T]['C'][$ID_C]
-        E = Condition Type (Without spaces)
-        I = Array containing the condition's attributes */
-        
+	/*  Cond
+		This function store a condition in current edited trigger $O[$ID_T]['C'][$ID_C]
+		E = Condition Type (Without spaces)
+		I = Array containing the condition's attributes */
+		
 	static function Cond($C,$I){
 		$array = array(self::$triggers_conditions[$C]);# Get condition id from string
 		if(key_exists('Q',$I))$array[1] = $I['Q']; # Amount
@@ -942,39 +937,38 @@ class SCX {
 		if(key_exists('T',$I))$array[8] = $I['T']; # Time
 		if(key_exists('K',$I))$array[9] = ($I['K'] == true ? -256:-1); # Inverted Condition for 1.4 RC
 		if(key_exists('A',$I)){ # Area
-            $I['A'] = self::Mapper($I['A']);
-            $array[10] = $I['A'][0][1]; # Point 1 Y
-            $array[11] = $I['A'][0][0]; # Point 1 X
-            $array[12] = $I['A'][1][1]; # Point 2 Y
-            $array[13] = $I['A'][1][0]; # Point 2 X
-        } 
+			$I['A'] = self::Mapper($I['A']);
+			$array[10] = $I['A'][0][1]; # Point 1 Y
+			$array[11] = $I['A'][0][0]; # Point 1 X
+			$array[12] = $I['A'][1][1]; # Point 2 Y
+			$array[13] = $I['A'][1][0]; # Point 2 X
+		} 
 		if(key_exists('G',$I))$array[14] = $I['G']; # Unit Group
 		if(key_exists('Y',$I))$array[15] = $I['Y']; # Unit Type
 		if(key_exists('Z',$I))$array[16] = $I['Z']; # AI Signal
 		self::$O[self::$ID_T]['C'][self::$ID_C] = $array;
 		self::$C_CT ++; # Increment absolute Condition count
 		self::$ID_C ++; # Increment relative Condition count
-    } 
-    
-    # Area mapper to put points in good order
-    static function Mapper($A){
-        if($A[0][0] >= $A[1][0])# If Area-Start-X is greater than Area-End-X:
-            $A = array($A[1],$A[0]); # Exchange Locations End to Start:
-        if($A[1][1] < $A[0][1])# If Area-Start-Y is greater than Area-End-Y:
-            $A = array(array($A[0][0],$A[1][1]),array($A[1][0],$A[0][1])); # Exchange Locations Y End to Start:
-        return $A;}
-        
-    # Die and return an error
-    static function Error($X){
-        die("<b>Error:</b> $X");}
-        
-    # Die and return an error with current edited trigger
-    static function ErrorTrig($X){
-        die("<b>Error on trigger \"".self::GetCurrentEditedTrigger()."\":</b> $X");}
-    
-    # Get the name of the current edited trigger
-    static function GetCurrentEditedTrigger(){
-        return self::$O[$ID_T][5];}
+	} 
+
+	# Area mapper to put points in good order
+	static function Mapper($A){
+		if($A[0][0] >= $A[1][0])# If Area-Start-X is greater than Area-End-X:
+			$A = array($A[1],$A[0]); # Exchange Locations End to Start:
+		if($A[1][1] < $A[0][1])# If Area-Start-Y is greater than Area-End-Y:
+			$A = array(array($A[0][0],$A[1][1]),array($A[1][0],$A[0][1])); # Exchange Locations Y End to Start:
+		return $A;}
+		
+	# Die and return an error
+	static function Error($X){ die("<b>Error:</b> $X"); }
+		
+	# Die and return an error with current edited trigger
+	static function ErrorTrig($X){
+		die("<b>Error on trigger \"".self::GetCurrentEditedTrigger()."\":</b> $X");}
+
+	# Get the name of the current edited trigger
+	static function GetCurrentEditedTrigger(){
+		return self::$O[$ID_T][5];}
 } 
 
 ?>
