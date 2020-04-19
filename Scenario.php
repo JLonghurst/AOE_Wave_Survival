@@ -5,16 +5,51 @@ function Scenario($serial) {
     global $DEBUG;
     $DEBUG = true;
 
-    function placeObjectInArea($p, $area, $objectId) {
-        foreach (AreaPts($area) as $point) {
-            Efft_Create($p, $objectId, $point);
-            setCell($point, TERRAIN_FARM);
+    class PlayerContext {
+        public $playerId;
+
+        function __construct($playerId) {
+            $this->playerId = $playerId;
+        }
+
+        public function getName($name) {
+            return "{$this->playerId}: $name";
+        }
+
+        public function trig($name, $s = 1, $l = 0) {
+            $name = $this->getName($name);
+            Trig($name, $s, $l);
+            return $name;
+        }
+
+        public function getEnemyId() {
+            return $this->playerId + 4;
+        }
+
+        public function act($name) {
+            Efft_Act($this->getName($name));
+        }
+
+        public function chat($text) {
+            Efft_Chat($this->playerId, $text);
+        }
+        
+        public function create($objectId, $pt, $playerIdOverride = null) {
+            $pId = $this->playerId;
+            if ($playerIdOverride != null) $pId = $playerIdOverride;
+            Efft_Create($pId, $objectId, $pt);
+            setCell($pt, TERRAIN_DESERT);
+        }
+
+        function createInArea($objectId, $area, $playerIdOverride = null) {
+            foreach (AreaPts($area) as $pt) 
+                $this->create($objectId, $pt, $playerIdOverride);
         }
     }
-
+    
     class Point {
-        private $x;
-        private $y;
+        public $x;
+        public $y;
 
         function __construct($x, $y) {
             $this->x = $x;
@@ -41,19 +76,15 @@ function Scenario($serial) {
         }
     }
 
-    class PlayerRegion {
+    class PlayerRegion extends PlayerContext {
         public $orientation = 'N';
         public $terrainId;
         /**
          * @var Point $origin: the origin of the areaRegion
          */
         public $origin;
-
         public $width;
         public $depth;
-
-        public $playerId;
-
         /**
          * Creates a new PlayerRegion
          *
@@ -63,47 +94,45 @@ function Scenario($serial) {
          * @param int $depth
          */
         function __construct($playerId, $terrainId, $width, $depth) {
-            $this->playerId = $playerId;
+            parent::__construct($playerId);
             $this->terrainId = $terrainId;
             $this->width = $width;
             $this->depth = $depth;
         }
-
         
         public function setOrigin($oPt) {
             $this->origin = $oPt;
         }
 
-        public function getArea() {
-            return AreaAdvanced($this->p->asArr(), $this->orientation, $this->width, $this->depth);
+        public function setWidth($width) {
+            $this->width = $width;
         }
-        public function getEnemyId() {
-            return $this->playerId + 4;
+    
+        public function setDepth($depth) {
+            $this->depth = $depth;
+        }
+
+        public function getArea() {
+            return AreaAdvanced($this->origin->asArr(), $this->orientation, $this->width, $this->depth);
+        }
+
+        public function getAreaWithWidth($width) {
+            return AreaAdvanced($this->origin->asArr(), $this->orientation, $width, $this->depth);
         }
 
         public function getCenter() {
-            return array($this->origin->x->offX(round($this->width / 2)), $this->origin->y);
-        }
-
-        public function trig($name, $s = 1, $l = 0) {
-            $name = "$this->playerId: $name";
-            Trig($name, $s, $l);
-            return $name;
-        }
-
-        public function create($u, $l) {
-            Efft_Create($this->player, $u, $l);
+            return $this->origin->offset(round($this->depth / 2) + 1);
         }
 
         // renders this zone for a player
         public function run() {
             foreach(AreaPts($this->getArea()) as $pt) 
                 setCell($pt, $this->terrainId);
-            return [$this->xOffset, $this->yOffset];
+            return $this->origin->offset(-$this->depth);
         }
     }
 
-    class Round {
+    class EnemyWave extends PlayerRegion {
         public $roundNum;
         // time until this round plays
         public $time;
@@ -111,53 +140,222 @@ function Scenario($serial) {
         public $payment;
         // the units of the round. note: unit is of type [[unitId, unitCount]]
         public $units;
-        // a pointer to the next round, or null if this is the last round
-        public $nextPtr;
+        
+        public $nextTime;
+        public $nextUnits;
 
-        function __construct($roundNum, $time, $payment, $units, $nextPtr) {
+        function __construct($playerId, $roundNum, $time, $payment, $units) {
+            parent::__construct($playerId, null, 0, 0);
             $this->roundNum = $roundNum;
             $this->time = $time;
             $this->payment = $payment;
             $this->units = $units;
-            $this->nextPtr = $nextPtr;
         }
 
-        function placeRoundForPlayer($p, $enemyId, $point) {
-            //Trig(uniqid(), 1, 0);
-            $id = uniqid();
+        function placeRoundForPlayer() {
             $name = nameFromUnit($this->units);
-            Trig("{$id} {$name}", 1, 0);
-            Cond_Timer($this->time);
-            // spawn the units of the round
+            $this->trig($name, 1, 0);
+                Cond_Timer($this->time);
+            // give the play goodies
+            Efft_Give($this->playerId, $this->payment, STONE);
+            $this->chat("<GREEN> {$this->payment} stone for round advancement");
+            $this->chat("<RED> Round {$this->roundNum}: {$name}");
+            // spawn the waves units
             foreach((array)$this->units as $i => $unit) {
                 $unitId = $unit[0];
-                $unitSize = $unit[1] - 1;
-                placeObjectInArea($enemyId, Area(
-                    $point[0]  + $i, 
-                    $point[1] - $unitSize / 2, 
-                    $point[0]  + $i, 
-                    $point[1] + $unitSize / 2
-                ), $unitId);
+                $unitSize = $unit[1];
+                while($unitSize > 0) {
+                    $test = $this->origin->offset($this->depth-$i)->asArr();
+                    $spawnArea = AreaAdvanced(
+                        $this->origin->offset($this->depth-$i)->asArr(), 
+                        $this->orientation, 
+                        $unitSize % $this->width, 
+                        1
+                    );
+                    $this->createInArea($unitId, $spawnArea, $this->getEnemyId());
+                    $unitSize -= $this->width;
+                    $i++;
+                }
             }
-            // give the play goodies
-            Efft_Give($p, $this->payment, STONE);
-            Efft_Chat($p, "<GREEN> {$this->payment} stone for round advancement");
-            Efft_Chat($p, "<RED> Round {$this->roundNum}: {$name}");
             // display future round info if it exists
-            if ($this->nextPtr != null)
-            {
-                $nextMin = floor($this->nextPtr->time / 60);
-                $nextSec = $this->nextPtr->time % 60;
-                if ($nextMin < 10)  $nextMin =  "0{$nextMin}"; 
-                if ($nextSec < 10)  $nextSec =  "0{$nextSec}";
-                $roundDiff = $this->nextPtr->time - $this->time;
-                $nextName = nameFromUnit($this->nextPtr->units);
+            if ($this->nextTime != null) {
+                $nextMin = floor($this->nextTime / 60);
+                $nextSec = $this->nextTime % 60;
+                $nextMin = $nextMin < 10 ? "0{$nextMin}" : $nextMin;
+                $nextSec = $nextSec < 10 ? "0{$nextSec}" : $nextSec;
+                $roundDiff = $this->nextTime - $this->nextTime;
+                $nextName = nameFromUnit($this->nextUnits);
+                $nextNum = $this->roundNum + 1;
                 Efft_Display($roundDiff, 0, 
-                    "<RED> Round {$this->nextPtr->roundNum} " . 
+                    "<RED> Round $nextNum " . 
                     "begins at $nextMin:$nextSec " .
-                    "in {$roundDiff} seconds. \n\n Next: {$nextName}"
+                    "in $roundDiff seconds. \n\n Next: $nextName"
                 );
             }
+        }
+    } 
+
+    class WalledRegion extends PlayerRegion {
+        public $WALL_MATERIAL = U_OLD_STONE_HEAD;
+
+        function __construct($playerId, $terrainId, $width, $depth) {
+            parent::__construct($playerId, $terrainId, $width, $depth);
+        }
+
+        public function run() {
+            $this->placeWall();
+            return parent::run();
+        }
+        public function placeWall() {
+            Trig(uniqid() . ' Surround Walls', 1, 0);
+                $this->createInArea($this->WALL_MATERIAL, offAreaYUp($this->getArea(), 1), 0);
+                $this->createInArea($this->WALL_MATERIAL, offAreaYDown($this->getArea(), 1), 0);
+        }
+    }
+
+    class EnemySpawnZone extends WalledRegion {
+        function run() {
+            $this->killZoneTriggers();
+            $time = 5;
+            $waves = array();
+            foreach($GLOBALS['UNITS'] as $i => $unit) {
+                $wave = new EnemyWave($this->playerId, $i + 1, $time, $time, $unit);
+                array_push($waves, $wave);
+                $time += 5;
+            }
+            for ($i = 0; $i < count($waves) - 2; $i++) {
+                $waves[$i]->nextTime = $waves[$i+1]->time;
+                $waves[$i]->nextUnits = $waves[$i+1]->units;
+            }
+            foreach($waves as $wave) {
+                $wave->origin = $this->origin;
+                $wave->setWidth($this->width);
+                $wave->setDepth($this->depth);
+                $wave->placeRoundForPlayer();
+            }
+            return parent::run();
+        }
+
+        private function killZoneTriggers() {
+            // Creates Kill Zone in the area where enemyId buildings spawn
+            $this->trig("Kill Zone", 1, 1);
+            Cond_InAreaY($this->playerId, Y_MILITARY, 1, $this->getArea());
+            $this->chat("<RED> No player units are not allowed in the enemyId spawning area");
+            Efft_KillY($this->playerId, Y_MILITARY, $this->getArea());
+            if ($GLOBALS['DEBUG']) {
+                $this->trig("Kill Zone Enemy", 1, 1);
+                    Cond_InAreaY($this->playerId, 1, Y_MILITARY, $this->getArea());
+                    Efft_KillY($this->playerId, Y_MILITARY, $this->getArea());
+            }
+        }
+        
+        public function placeWall() {
+            parent::placeWall();
+            $this->createInArea($this->WALL_MATERIAL, offAreaXRight($this->getArea(), 1), 0);
+        }
+    }
+
+    class TowerZone extends WalledRegion {
+        function run() {
+            $this->placeTower($this->getCenter());
+            return parent::run();
+        }
+        function placeTower($point) {
+            setCell($point->asArr(), TERRAIN_SNOW);
+            $e = 5;
+            for ($i = 1; $i < $e; $i++)
+                foreach (AreaPts(AreaSet($point->asArr(), $e + 2 - $i)) as $p) 
+                    setElevation($p, $i);
+            
+            $this->trig("Enemy Town Center");
+                Efft_RemoveO($this->getEnemyId());
+                $this->create(U_TOWN_CENTER, $point->offset(0, 10)->asArr(), $this->getEnemyId());
+                Efft_InvincibleU($this->getEnemyId(), U_TOWN_CENTER);
+
+            $this->trig("Tower Placement", 1, 0);
+                $this->create(U_WATCH_TOWER, $point->asArr(), 0);
+                $this->act("Tower Death");
+            $this->trig("Tower Death", 0, 0, 1, "111", "Do not let your tower be destroyed by the enemyId buildings");
+                Cond_NotOwnU($this->playerId, 1, U_WATCH_TOWER);
+                $this->chat("<RED> You lost your tower! gg fam");
+                Efft_Display(10, 0, "<RED> You lost your tower! gg fam");
+                Efft_Display(10, 1, "<RED> You lost your tower! gg fam");
+                Efft_Display(10, 2, "<RED> You lost your tower! gg fam");
+                $this->act("End Game Chat 1");
+                $this->act("End Game Chat 2");
+            $this->trig("End Game Chat 1", 0);
+                Cond_Timer(5);
+                $this->chat(26);
+            $this->trig("End Game Chat 2", 0);
+                Cond_Timer(5);
+                $this->chat(27);
+                $this->act("Game Over");
+            $this->trig("Game Over", 0);
+                Cond_Timer(6);
+                Efft_DeclareVictory($this->getEnemyId());
+            $this->trig("Tower Health Regain", 1, 1);
+                Cond_Timer(1);
+                Efft_DamageY($this->playerId, -1, Y_BUILDING, $point->asArr());
+        }
+    }
+
+    class CombatBuildingZone extends WalledRegion {
+        function run() {
+            $DISTANCE = 6;
+            Trig(uniqid() . " PLACE", 1, 0);
+                $this->create(U_ARCHERY_RANGE, $this->origin->offset($DISTANCE)->asArr());
+                $this->create(U_BARRACKS, $this->origin->offset($DISTANCE, -$DISTANCE)->asArr());
+                $this->create(U_STABLE, $this->origin->offset($DISTANCE, $DISTANCE)->asArr());
+            return parent::run();
+        }
+
+        public function placeWall() {
+            parent::placeWall();
+            $this->createInArea($this->WALL_MATERIAL, offAreaYDown($this->getArea(), 1), 0);
+        }
+
+        function getStoreTriggers($techData) {
+            foreach ($techData as $storeItem) {
+                $storeItem->triggerName = $this->trig("FUCK EM");
+                switch($storeItem->buildingId) {
+                    case U_STABLE:
+                        Efft_Create($this->playerId, U_STABLE, $this->origin);
+                    case U_STABLE:
+                        Efft_Create($this->playerId, U_STABLE, $this->origin);
+                    case U_STABLE:
+                        Efft_Create($this->playerId, U_STABLE, $this->origin);
+                }
+            }
+        }
+    }
+
+    class StoreZone extends WalledRegion {
+        function run() {
+            $name = $this->trig("YAH BOI");
+                $this->chat("FUUUUCK");
+            $tech = new Tech(
+                "My Name Yeet",
+                $this->origin,
+                U_MILITIA,
+                [100, 200, 300],
+                [T_FEUDAL_AGE],
+                [$name]
+            );
+            $tech->origin = $this->origin;
+            //$tech->placeAtLocation($this->playerId);
+            return parent::run();
+        }
+        public function placeWall() {
+            parent::placeWall();
+            $this->createInArea($this->WALL_MATERIAL, offAreaYDown($this->getArea(), 1), 0);
+        }
+    }
+
+    class HouseZone extends WalledRegion {
+        function run() {
+            $this->trig("House Place");
+                $this->createInArea(U_HOUSE, $this->getArea());
+            return parent::run();
         }
     }
 
@@ -201,7 +399,7 @@ function Scenario($serial) {
             Trig(uniqid(), 1, 0);
                 Efft_Create(0, U_RELIC, $relicLocation);
                 /// intiially its locked   
-                Efft_Create(0, U_OLD_STONE_HEAD, $headLocation); 
+                Efft_Create(0, $this->WALL_MATERIAL, $headLocation); 
             foreach($this->costs as $i => $cost) {
                 Efft_Create($p, $this->unitId, $unitLocation);
                 Efft_NameU(0, U_RELIC, "{$this->name} ($cost stone)", $headLocation);
@@ -300,211 +498,6 @@ function Scenario($serial) {
             U_STABLE
         ),
     ];
-
-    class WalledRegion extends PlayerRegion {
-        function __construct($playerId, $width, $depth) {
-            parent::__construct($playerId, $width, $depth);
-        }
-
-        public function run() {
-            $this->placeWall();
-            return parent::run();
-        }
-        public function placeWall() {
-            Trig(uniqid() . ' Surround Walls', 1, 0);
-                placeObjectInArea(0, offAreaYUp($this->getArea(), 1), U_OLD_STONE_HEAD);
-                placeObjectInArea(0, offAreaYDown($this->getArea(), 1), U_OLD_STONE_HEAD);
-        }
-    }
-
-    class EnemySpawnZone extends WalledRegion {
-        public $terrainId = TERRAIN_SNOW;
-
-        function __construct($p, $pArea, $terrainId = TERRAIN_SNOW) {
-            parent::__construct($p, $pArea,  $terrainId);
-        }
-        
-        function run() {
-            $this->killZoneTriggers();
-            $rounds = $this->getRounds();
-            foreach($rounds as $round) {
-                $round->placeRoundForPlayer($this->playerId, $this->getEnemyId(), $this->getCenter());
-            }
-            return parent::run();
-        }
-
-        private function killZoneTriggers() {
-            // Creates Kill Zone in the area where enemyId buildings spawn
-            $this->trig("Kill Zone", 1, 1);
-            Cond_InAreaY($this->playerId, Y_MILITARY, 1, $this->getArea());
-            Efft_Chat($this->playerId, "<RED> No player units are not allowed in the enemyId spawning area");
-            Efft_KillY($this->playerId, Y_MILITARY, $this->getArea());
-            if ($GLOBALS['DEBUG']) {
-                $this->trig("Kill Zone Enemy", 1, 1);
-                    Cond_InAreaY($this->playerId, 1, Y_MILITARY, $this->getArea());
-                    Efft_KillY($this->playerId, Y_MILITARY, $this->getArea());
-            }
-        }
-        
-        public function placeWall() {
-            parent::placeWall();
-            placeObjectInArea(0, offAreaXRight($this->getArea(), 1), U_OLD_STONE_HEAD);
-        }
-
-        public function getRounds() {
-            $time = 15;
-            $rounds = array();
-            foreach($GLOBALS['UNITS'] as $i => $unit) {
-                $round = new Round($i + 1, $time, $time, $unit, null);
-                array_push($rounds, $round);
-                $time += 45;
-            }
-            for ($i = 0; $i < count($rounds) - 2; $i++)
-                $rounds[$i]->nextPtr = $rounds[$i+1];
-            return $rounds;
-        }
-    }
-
-    class TowerZone extends WalledRegion {
-        function run() {
-            $this->placeTower($this->getCenter());
-            return parent::run();
-        }
-        function placeTower($point) {
-            setCell($point, TERRAIN_SNOW);
-            $e = 5;
-            for ($i = 1; $i < $e; $i++)
-                foreach (AreaPts(AreaSet($point, $e + 2 - $i)) as $p) 
-                    setElevation($p, $i);
-            
-            $this->trig("Enemy Town Center");
-                Efft_RemoveO($this->getEnemyId());
-                $this->create(U_TOWN_CENTER, $point);
-                Efft_Create($this->getEnemyId(), U_TOWN_CENTER, [$point[0], $point[1] + 9]);
-            
-            $this->trig("Tower Placement", 1, 0);
-                $this->create(U_WATCH_TOWER, $point);
-                Efft_Act("{$this->playerId} Tower Death");
-
-                // Town Center is indestrucable
-            $this->trig("EnemyId Town Center Invunerable", 1, 1);
-                Efft_InvincibleU($this->getEnemyId(), U_TOWN_CENTER);
-
-            $this->trig("Tower Death", 0, 0, 1, "111", "Do not let your tower be destroyed by the enemyId buildings");
-                Cond_NotOwnU($this->playerId, 1, U_WATCH_TOWER);
-                Efft_Chat($this->playerId, "<RED> You lost your tower! gg fam");
-                Efft_Display(10, 0, "<RED> You lost your tower! gg fam");
-                Efft_Display(10, 1, "<RED> You lost your tower! gg fam");
-                Efft_Display(10, 2, "<RED> You lost your tower! gg fam");
-                Efft_Act("{$this->playerId} End Game Chat 1");
-            
-            $this->trig("Game Over", 0, 0);
-                Cond_Timer(6);
-                Efft_DeclareVictory($this->getEnemyId());
-                
-            $this->trig("End Game Chat 2", 0, 0);
-                Cond_Timer(5);
-                Efft_Chat($this->playerId, 27);
-                Efft_Act("{$this->playerId} Game Over");
-            
-            $this->trig("End Game Chat 1", 0, 0);
-                Cond_Timer(3);
-                Efft_Chat($this->playerId, 26);
-                Efft_Act("{$this->playerId} End Game Chat 2");
-                
-
-            $this->trig("Tower Health Regain", 1, 1);
-                Cond_Timer(1);
-                Efft_DamageY($this->playerId, -1, Y_BUILDING, $point);
-            // $this->trig("Tower Health Regain x10", 0, 1);
-            //     Cond_Timer(1);
-            //     Efft_DamageY($this->playerId, -10, Y_BUILDING, $point);
-        }
-    }
-
-    class CombatBuildingZone extends WalledRegion {
-        function __construct($p, $origin, $tId = TERRAIN_ROAD) {
-            parent::__construct($p, $origin, 21, 21, $tId);
-        }
-        function run() {
-            $filteredPoints = array();
-            foreach (AreaPts($this->getArea()) as $point) {
-                if (abs($point[0] - $this->getCenter()[0]) % 6 == 0 && abs($point[1] - $this->getCenter()[1]) % 6 == 0) {
-                    setCell($point, TERRAIN_SNOW);
-                    array_push($filteredPoints, $point);
-                } 
-            }
-            Trig(uniqid() . " PLACE", 1, 0);
-            foreach($filteredPoints as $pt) {
-                if ($pt[0] == $this->getCenter()[0]) {
-            // middle
-            Efft_Create($this->playerId, U_BARRACKS, $pt);
-                } else if ($pt[0] < $this->getCenter()[0]) {
-            // left
-            Efft_Create($this->playerId, U_STABLE, $pt);
-                } else {
-            // right
-            Efft_Create($this->playerId, U_ARCHERY_RANGE, $pt);
-                }
-            }
-            return parent::run();
-        }
-        public function placeWall() {
-            parent::placeWall();
-            placeObjectInArea(0, offAreaYDown($this->getArea(), 1), U_OLD_STONE_HEAD);
-        }
-
-        function getStoreTriggers($techData) {
-            foreach ($techData as $storeItem) {
-                $storeItem->triggerName = $this->trig("FUCK EM");
-                switch($storeItem->buildingId) {
-                    case U_STABLE:
-                        Efft_Create($this->playerId, U_STABLE, $this->origin);
-                    case U_STABLE:
-                        Efft_Create($this->playerId, U_STABLE, $this->origin);
-                    case U_STABLE:
-                        Efft_Create($this->playerId, U_STABLE, $this->origin);
-                }
-            }
-        }
-    }
-
-    class StoreZone extends WalledRegion {
-        function __construct($p, $origin, $tId = TERRAIN_ROAD_BROKEN) {
-            parent::__construct($p, $origin, 9, 35, $tId);
-        }
-        function run() {
-            $name = $this->trig("YAH BOI");
-                Efft_Chat($this->playerId, "FUUUUCK");
-            $tech = new Tech(
-                "My Name Yeet",
-                $this->origin,
-                U_MILITIA,
-                [100, 200, 300],
-                [T_FEUDAL_AGE],
-                [$name]
-            );
-            $tech->origin = $this->origin;
-            //$tech->placeAtLocation($this->playerId);
-            return parent::run();
-        }
-        public function placeWall() {
-            parent::placeWall();
-            placeObjectInArea(0, offAreaYDown($this->getArea(), 1), U_OLD_STONE_HEAD);
-        }
-    }
-
-    class HouseZone extends WalledRegion {
-        function __construct($p, $origin, $tId = TERRAIN_DESERT) {
-            parent::__construct($p, $origin, 9, 30, $tId);
-        }
-        function run() {
-            $this->trig("House Place");
-                placeObjectInArea($this->playerId, $this->getArea(), U_HOUSE);
-            return parent::run();
-        }
-    }
-    
     /**
      * 
      * 
@@ -526,12 +519,6 @@ function Scenario($serial) {
     }
     SetAllTech(true);
     SetPlayersCount(8);
-    $MAP_OFFSET = 15;
-    $o = array(GetMapSize() - $MAP_OFFSET, $MAP_OFFSET);
-    $X_FIXED = $o[0];
-    $Y_LENGTH = 51;
-    $o[1] += round($Y_LENGTH / 2); 
-
     foreach ([1, 2, 3, 4] as $i => $playerId) {
     }
     $PLAYERS = [1, 2, 3, 4];
@@ -543,20 +530,24 @@ function Scenario($serial) {
 
         $regions = [
             // Enemy Spawn Zone
-            new EnemySpawnZone($playerId, 20, 31),
-            new WalledRegion($playerId, 30, 20),
-            new TowerZone($playerId, 30, 20),
-            new CombatBuildingZone($playerId, 30, 20),
-            new StoreZone($playerId, 30, 20),
-            new HouseZone($playerId, 30, 20),
+            new EnemySpawnZone($playerId, TERRAIN_SNOW, 20, 20),
+            new WalledRegion($playerId, TERRAIN_ROAD, 20, 30),
+            new TowerZone($playerId, TERRAIN_ROAD_BROKEN, 23, 23),
+            new CombatBuildingZone($playerId, TERRAIN_ROAD, 21, 21),
+            new StoreZone($playerId, TERRAIN_ROAD_BROKEN, 35, 9),
+            new HouseZone($playerId, TERRAIN_ROAD_BROKEN, 35, 4),
         ];
+        $MAP_OFFSET = 15;
         $origin = new Point(GetMapSize() - $MAP_OFFSET, $MAP_OFFSET);
+        $X_FIXED = $origin->x;
+        $Y_LENGTH = 50;
+        $origin = $origin->offset(0, round($Y_LENGTH / 2)); 
         foreach ($regions as $region) {
             $region->setOrigin($origin);
             $newOrigin = $region->run();
             $origin = $newOrigin;
         }
-        $origin = new Point($X_FIXED, $origin->y->offset($Y_LENGTH));
+        $origin = new Point($X_FIXED, $origin->offset(0, $Y_LENGTH));
     }
     //$lastRound = null;
 
