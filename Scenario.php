@@ -39,19 +39,24 @@ function Scenario($serial) {
         }
 
         // pt is of type pt
-        public function create($objectId, $pt, $playerIdOverride = null) {
-            $pId = $playerIdOverride == 0 || $playerIdOverride != null 
-                ? $playerIdOverride 
-                : $this->playerId;
-            Efft_Create($pId, $objectId, $pt->asArr());
+        public function create($objectId, $pt, $playerId = NULL) {
+            if (!$playerId) $playerId = $this->playerId;
+            Efft_Create($playerId, $objectId, $pt->asArr());
             setCell($pt->asArr(), TERRAIN_SNOW_DIRT_BUILDING_RESIDUE);
         }
 
-        function createInArea($objectId, $area, $playerIdOverride = null) {
-            foreach (AreaPts($area) as $pt) {
-                $p = new Point($pt[0], $pt[1]);
-                $this->create($objectId, $p, $playerIdOverride);
-            }
+        // pt is of type pt
+        public function createGaia($objectId, $pt) {
+            Efft_Create(0, $objectId, $pt->asArr());
+            setCell($pt->asArr(), TERRAIN_SNOW_DIRT_BUILDING_RESIDUE);
+        }
+
+        function createInArea($objectId, $area, $playerId = NULL) {
+            foreach (AreaPts($area) as $pt) 
+                if ($playerId === 0) 
+                    $this->createGaia($objectId, new Point($pt[0], $pt[1]));
+                else 
+                    $this->create($objectId, new Point($pt[0], $pt[1]), $playerId);
         }
     }
     
@@ -134,6 +139,10 @@ function Scenario($serial) {
         public function getCenter() {
             return $this->origin->offset(round(-$this->depth / 2) + 1);
         }
+        
+        public function getZoneEnd() {
+            return $this->origin->offset(-$this->depth);
+        }
 
         public function createAreaRow($offsetX, $origin = null, $width = null) {
             $origin = $origin != null ? $origin : $this->origin;
@@ -197,7 +206,7 @@ function Scenario($serial) {
                 $nextSec = $this->nextTime % 60;
                 $nextMin = $nextMin < 10 ? "0{$nextMin}" : $nextMin;
                 $nextSec = $nextSec < 10 ? "0{$nextSec}" : $nextSec;
-                $roundDiff = $this->nextTime - $this->nextTime;
+                $roundDiff = $this->nextTime - $this->time;
                 $nextName = nameFromUnit($this->nextUnits);
                 $nextNum = $this->roundNum + 1;
                 Efft_Display($roundDiff, 0, 
@@ -257,7 +266,7 @@ function Scenario($serial) {
                 $this->create(U_TOWN_CENTER, $this->getCenter()->offset(0, 9), $this->getEnemyId());
                 Efft_InvincibleU($this->getEnemyId(), U_TOWN_CENTER);
             $this->trig("Tower Placement", 1, 0);
-                $this->create(U_WATCH_TOWER, $this->getCenter(), 0);
+                $this->create(U_WATCH_TOWER, $this->getCenter());
                 $this->act("Tower Death");
             $this->trig("Tower Death", 0, 0, 1, "111", "Do not let your tower be destroyed by the enemyId buildings");
                 Cond_Timer(3);
@@ -296,23 +305,12 @@ function Scenario($serial) {
         function run() {
             parent::run();
             $this->trig("Initial Placement");
-                $this->create(U_ARCHERY_RANGE, $this->origin->offset(-$this->DISTANCE));
-                $this->create(U_BARRACKS, $this->origin->offset(-$this->DISTANCE, -$this->DISTANCE));
-                $this->create(U_STABLE, $this->origin->offset(-$this->DISTANCE, $this->DISTANCE));
+                $this->create(U_ARCHERY_RANGE, $this->origin->offset(-$this->DISTANCE + 1));
+                $this->create(U_BARRACKS, $this->origin->offset(-$this->DISTANCE + 1, -$this->DISTANCE));
+                $this->create(U_STABLE, $this->origin->offset(-$this->DISTANCE + 1, $this->DISTANCE));
         }
 
         function getStoreTriggers($techData) {
-            foreach ($techData as $storeItem) {
-                $storeItem->triggerName = $this->trig("FUCK EM");
-                switch($storeItem->buildingId) {
-                    case U_STABLE:
-                        Efft_Create($this->playerId, U_STABLE, $this->origin);
-                    case U_STABLE:
-                        Efft_Create($this->playerId, U_STABLE, $this->origin);
-                    case U_STABLE:
-                        Efft_Create($this->playerId, U_STABLE, $this->origin);
-                }
-            }
         }
     }
 
@@ -342,30 +340,67 @@ function Scenario($serial) {
         }
     }
 
-    class Tech {
-        public $origin;
+    class EcoZone extends PlayerRegion {
+        private $goldOffset = 10;
+
+        function run() {
+            parent::run();
+            $goldOffset = $this->getCenter()->offset(0, -$this->goldOffset);
+            $lumberCamp = $this->getZoneEnd()->offset(4);
+            $treeArea = $this->createAreaRow(1, $this->getZoneEnd());
+            $goldArea = AreaSet($goldOffset->asArr());
+            $this->trig("Initial Eco Placement");
+                $this->create(U_TOWN_CENTER, $this->getCenter());
+                $this->create(U_MINING_CAMP, $goldOffset->offset(-3));
+                $this->create(U_LUMBER_CAMP, $lumberCamp);
+                $this->createInArea(U_OLD_STONE_HEAD, $this->createAreaRow(0), 0);
+                $this->act("Create 5 Vils");
+            $this->trig("Gold Placement", 1, 1);
+                $this->createInArea(U_GOLD_MINE, $goldArea, 0);
+            $this->trig("Tree Placement", 1, 1);
+                $this->createInArea(U_TREE_A, $treeArea, 0);
+            
+            $this->getStoreTriggers();
+        }
+
+        function getStoreTriggers() {
+            $vilSpawnArea = $this->createAreaRow(1, $this->origin->offset(-3), 5);
+            $createVilTech = new Tech(
+                "Create 5 Vils",
+                U_VILLAGER_M,
+                [100, 200, 400, 800],
+                null,
+                $this->trig("Create 5 Vils"),
+                null
+            );
+                $this->createInArea(U_VILLAGER_M, $vilSpawnArea);
+            $createVilTech->setOrigin($this->origin->offset(3));
+            $createVilTech->placeAtLocation($this->playerId);
+        }
+    }
+
+    class Tech extends PlayerRegion {
         public $name; 
         public $costs; 
         public $requirements; 
         public $unitId; 
         public $buildingId;
         // nullable, can make a trigger optionally
-        public $triggerNames;
+        public $triggerName;
         
-        function __construct($name, $unitId, $costs, $requirements, $triggerNames, $buildingId) {
+        public $WALL_MATERIAL = U_OLD_STONE_HEAD;
+
+        function __construct($name, $unitId, $costs, $requirements, $triggerName, $buildingId) {
             $this->name = $name;
             $this->unitId = $unitId;
             $this->costs = $costs;
-            $this->buildingId = $buildingId;
             $this->requirements = $requirements;
-            $this->triggerNames= $triggerNames;
-        }
-
-        function setOrigin($origin) {
-            $this->origin = $origin;
+            $this->triggerName = $triggerName;
+            $this->buildingId = $buildingId;
         }
 
         function placeAtLocation($p) {
+            $this->setPlayerId($p);
             if ($this->origin == null) {
                 print("FUCK U NEED AN ORIGIN ");
             }
@@ -373,38 +408,42 @@ function Scenario($serial) {
             // x is offset by 2 on map
             // lan    $Length_Xs are 2
             $headLocation = $this->origin;
-            $relicLocation = array($headLocation[0] - 2, $headLocation[1]);
-            $unitLocation = array($headLocation[0] - 1, $headLocation[1]);
-            $killLocation = array($headLocation[0] + 1, $headLocation[1]);
+            $relicLocation = $this->origin->offset(-2);
+            $unitLocation = $this->origin->offset(-1);
+            $killLocation = $this->origin->offset(1);
 
             $size = count($this->costs);
             // one time event
             Trig(uniqid(), 1, 0);
-                Efft_Create(0, U_RELIC, $relicLocation);
-                /// intiially its locked   
-                Efft_Create(0, $this->WALL_MATERIAL, $headLocation); 
+                Efft_Act("P:$p {$this->name} 0");
+                $this->createGaia(U_RELIC, $relicLocation);
             foreach($this->costs as $i => $cost) {
-                Efft_Create($p, $this->unitId, $unitLocation);
-                Efft_NameU(0, U_RELIC, "{$this->name} ($cost stone)", $headLocation);
+                $this->create($this->unitId, $unitLocation);
+                Efft_NameU(0, U_RELIC, "{$this->name} ($cost stone)", $headLocation->asArr());
 
-                Trig("P:$p {$this->name} $i", 1, 0);
-                Cond_Timer(2); // debounce the last purchase
-                Cond_Accumulate($p, $cost, R_STONE_STORAGE);
-                Cond_InAreaU($p, 1, $this->unitId, $killLocation);
-                Efft_KillU($p, $this->unitId, $killLocation);
-                Efft_Tribute($p, $cost, R_STONE_STORAGE, 0);
-                foreach ($this->triggerNames as $trigName) 
-                    Efft_Act("$trigName");
+                Trig("P:$p {$this->name} $i", 0, 0);
+                    Cond_Timer(2); // debounce the last purchase
+                    Cond_Accumulate($p, $cost, R_STONE_STORAGE);
+                    Cond_InAreaU($p, 1, $this->unitId, $killLocation->asArr());
+                    Efft_KillU($p, $this->unitId, $killLocation->asArr());
+                    Efft_Tribute($p, $cost, R_STONE_STORAGE, 0);
+                    Efft_Act($this->triggerName);
                 // place down for another round if it exists
                 if ($i != $size - 1) {
                     $next = $i + 1;
                     Efft_Act("P:$p {$this->name} $next");
                 }
             }
+            $this->trig(uniqId());
+                /// will place wall over blocked location
+                $this->createInArea($this->WALL_MATERIAL, AreaSet($unitLocation->asArr()), 0);
+                $this->createInArea($this->WALL_MATERIAL, AreaSet($killLocation->asArr()), 0);
+                Efft_RemoveO(0, $killLocation->asArr());
             Trig("{$p} Block Kill Trigger {$this->name}");
-                foreach ($this->requirements as $req) 
-                Cond_Researched($p, $req);
-                Efft_RemoveU(0, U_OLD_STONE_HEAD, $headLocation);
+                if (is_array($this->requirements))
+                    foreach ($this->requirements as $req) 
+                        Cond_Researched($p, $req);
+                Efft_RemoveU(0, U_OLD_STONE_HEAD, $headLocation->asArr());
         }
     }
     $TECH_DATA = [
@@ -482,68 +521,9 @@ function Scenario($serial) {
         ),
     ];
 
-    function wallAreas($areas) {
-        $maxAtX = [];
-        $minAtX = [];
-        $allPts = [];
-        foreach ($areas as $a) {
-            foreach (AreaPts($a) as $p) {
-                if (!array_key_exists($p[0], $maxAtX)) {
-                    $maxAtX[$p[0]] = new Point(0, 0);
-                }
-                if (!array_key_exists($p[0], $minAtX)) {
-                    $minAtX[$p[0]] = new Point(500, 500);
-                }
-                $curMax = $maxAtX[$p[0]];
-                $curMin = $minAtX[$p[0]];
-                if ($curMax == null || $p[1] >  $curMax->y) {
-                    $maxAtX[$p[0]] = new Point($p[0], $p[1]);
-                }
-                if ($curMin == null ||  $p[1] < $curMin->y) {
-                    $minAtX[$p[0]] = new Point($p[0], $p[1]);
-                }
-                array_push($allPts, new Point($p[0], $p[1]));
-            }
-        }
-        sort($maxAtX);
-        sort($minAtX);
-        $lastMax = $maxAtX[0];
-        $diffIndex = [];
-        foreach($maxAtX as $i => $max) {
-            $diff = $max->y - $lastMax->y;
-            if ($diff != 0) $diffIndex[$i] = $diff;
-            $lastMax = $max;
-        }
-        $xDiffs = [];
-        foreach ($diffIndex as $x => $diff) {
-            $aMax = null;
-            $aMin = null;
-            if ($diff < 0) {
-                $aMax = AreaPts($maxAtX[$x]->offset(0, 1)->areaFromOffset(0, -$diff));
-                $aMin = AreaPts($minAtX[$x]->offset(0, -1)->areaFromOffset(0, $diff));
-            } else {
-                $aMax = AreaPts($maxAtX[$x - 1]->offset(0, 1)->areaFromOffset(0, $diff));
-
-                $aMin = AreaPts($minAtX[$x - 1]->offset(0, -1)->areaFromOffset(0, -$diff));
-            }
-            $xDiffs = array_merge($xDiffs, $aMax);
-            $xDiffs = array_merge($xDiffs, $aMin);
-        }
-        $res = array_merge(
-            array_map(function($pt) {
-                return $pt->offset(0, 1)->asArr();
-            }, $maxAtX), 
-            array_map(function($pt) {
-                return $pt->offset(0, -1)->asArr();
-            }, $minAtX),
-            $xDiffs
-        );
-        foreach($res as $pt) {
-            Efft_Create(0, U_OLD_STONE_HEAD, $pt);
-            setCell($pt, TERRAIN_SHALLOWS);
-        }
-        return $res;
-    }
+    Trig(uniqid());
+        Efft_RemoveO(1);
+        Efft_RemoveO(2);
 
     /**
      * 
@@ -571,19 +551,17 @@ function Scenario($serial) {
         new PlayerRegion(TERRAIN_ROAD_FUNGUS, 31, 30),
         new TowerZone(TERRAIN_ROAD_BROKEN, 21, 21),
         new CombatBuildingZone(TERRAIN_ROAD, 21, 21),
-        new StoreZone(TERRAIN_ROAD_BROKEN, 35, 9),
-        new HouseZone(TERRAIN_BEACH, 50, 4),
+        new StoreZone(TERRAIN_ROAD_BROKEN, 35, 12),
+        new EcoZone(TERRAIN_GRASS_2, 30, 25),
+        new HouseZone(TERRAIN_ROAD_BROKEN, 38, 4),
     ];
     $offsets = [0];
     foreach ($regions as $i => $region) 
         array_push($offsets, $offsets[$i] - $region->depth);
-        
-    $Y_LENGTH = 50;
-    $MAP_OFFSET = 50;
+    $Y_LENGTH = 40;
+    $MAP_OFFSET = 20;
     $corner = new Point(GetMapSize() - $MAP_OFFSET, $MAP_OFFSET);
     $origin = $corner->offset(0, round($Y_LENGTH / 2));
-    $X_FIXED = $origin->x;
-
     $PLAYERS = [1, 3, 5, 7];
     $PLAYERS = [1];
     SetPlayersCount(2*count($PLAYERS));
@@ -606,7 +584,7 @@ function Scenario($serial) {
             $topRegion->createInArea(U_OLD_STONE_HEAD, $topA, 0);
             $topRegion->createInArea(U_OLD_STONE_HEAD, $bottomA, 0);
             wallAreas($areas);
-        $origin = new Point($X_FIXED, $origin->offset(0, $Y_LENGTH));
+        $origin = $origin->offset(0, $Y_LENGTH);
     }
     //$lastRound = null;
 

@@ -1824,6 +1824,68 @@ function setCell($point, $terrainId) {
     SetTerrainCell(round($point[0]), round($point[1]), array("terrain" => $terrainId));
 }
 
+function wallAreas($areas) {
+    $maxAtX = [];
+    $minAtX = [];
+    $allPts = [];
+    foreach ($areas as $a) {
+        foreach (AreaPts($a) as $p) {
+            if (!array_key_exists($p[0], $maxAtX)) {
+                $maxAtX[$p[0]] = new Point(0, 0);
+            }
+            if (!array_key_exists($p[0], $minAtX)) {
+                $minAtX[$p[0]] = new Point(500, 500);
+            }
+            $curMax = $maxAtX[$p[0]];
+            $curMin = $minAtX[$p[0]];
+            if ($curMax == null || $p[1] >  $curMax->y) {
+                $maxAtX[$p[0]] = new Point($p[0], $p[1]);
+            }
+            if ($curMin == null ||  $p[1] < $curMin->y) {
+                $minAtX[$p[0]] = new Point($p[0], $p[1]);
+            }
+            array_push($allPts, new Point($p[0], $p[1]));
+        }
+    }
+    sort($maxAtX);
+    sort($minAtX);
+    $lastMax = $maxAtX[0];
+    $diffIndex = [];
+    foreach($maxAtX as $i => $max) {
+        $diff = $max->y - $lastMax->y;
+        if ($diff != 0) $diffIndex[$i] = $diff;
+        $lastMax = $max;
+    }
+    $xDiffs = [];
+    foreach ($diffIndex as $x => $diff) {
+        $aMax = null;
+        $aMin = null;
+        if ($diff < 0) {
+            $aMax = AreaPts($maxAtX[$x]->offset(0, 1)->areaFromOffset(0, -$diff));
+            $aMin = AreaPts($minAtX[$x]->offset(0, -1)->areaFromOffset(0, $diff));
+        } else {
+            $aMax = AreaPts($maxAtX[$x - 1]->offset(0, 1)->areaFromOffset(0, $diff));
+
+            $aMin = AreaPts($minAtX[$x - 1]->offset(0, -1)->areaFromOffset(0, -$diff));
+        }
+        $xDiffs = array_merge($xDiffs, $aMax);
+        $xDiffs = array_merge($xDiffs, $aMin);
+    }
+    $res = array_merge(
+        array_map(function($pt) {
+            return $pt->offset(0, 1)->asArr();
+        }, $maxAtX), 
+        array_map(function($pt) {
+            return $pt->offset(0, -1)->asArr();
+        }, $minAtX),
+        $xDiffs
+    );
+    foreach($res as $pt) {
+        Efft_Create(0, U_OLD_STONE_HEAD, $pt);
+        setCell($pt, TERRAIN_SHALLOWS);
+    }
+    return $res;
+}
 
 function setCellArea($area, $terrainId) {
     foreach(AreaPts($area) as $p)
