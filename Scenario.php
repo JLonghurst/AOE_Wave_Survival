@@ -401,9 +401,8 @@ function Scenario($serial) {
 
         function placeAtLocation($p) {
             $this->setPlayerId($p);
-            if ($this->origin == null) {
-                print("FUCK U NEED AN ORIGIN ");
-            }
+            if ($this->origin == null) print("FUCK U NEED AN ORIGIN ");
+            
             // give meaningful names to data array
             // x is offset by 2 on map
             // lan    $Length_Xs are 2
@@ -446,6 +445,7 @@ function Scenario($serial) {
                 Efft_RemoveU(0, U_OLD_STONE_HEAD, $headLocation->asArr());
         }
     }
+
     $TECH_DATA = [
         new Tech(
             "Infandry Upgrade 1 (Feudal Upgrades)", 
