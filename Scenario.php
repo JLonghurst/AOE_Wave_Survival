@@ -74,6 +74,10 @@ function Scenario($serial) {
         public function areaFromP2($p2) {
             return Area($this->x, $this->y, $p2->x, $p2->y);
         }
+        
+        public function areaFromOffset($dx, $dy = 0) {
+            return $this->areaFromP2($this->offset($dx, $dy));
+        }
     }
 
     class PlayerRegion extends PlayerContext {
@@ -121,7 +125,7 @@ function Scenario($serial) {
         }
 
         public function getCenter() {
-            return $this->origin->offset(round($this->depth / 2) + 1);
+            return $this->origin->offset(round(-$this->depth / 2) + 1);
         }
 
         // renders this zone for a player
@@ -140,10 +144,8 @@ function Scenario($serial) {
         public $payment;
         // the units of the round. note: unit is of type [[unitId, unitCount]]
         public $units;
-        
         public $nextTime;
         public $nextUnits;
-
         function __construct($playerId, $roundNum, $time, $payment, $units) {
             parent::__construct($playerId, null, 0, 0);
             $this->roundNum = $roundNum;
@@ -165,11 +167,10 @@ function Scenario($serial) {
                 $unitId = $unit[0];
                 $unitSize = $unit[1];
                 while($unitSize > 0) {
-                    $test = $this->origin->offset($this->depth-$i)->asArr();
                     $spawnArea = AreaAdvanced(
-                        $this->origin->offset($this->depth-$i)->asArr(), 
+                        $this->origin->offset(-$this->depth + 2 + $i)->asArr(), 
                         $this->orientation, 
-                        $unitSize % $this->width, 
+                        $unitSize % $this->width,
                         1
                     );
                     $this->createInArea($unitId, $spawnArea, $this->getEnemyId());
@@ -269,7 +270,7 @@ function Scenario($serial) {
             
             $this->trig("Enemy Town Center");
                 Efft_RemoveO($this->getEnemyId());
-                $this->create(U_TOWN_CENTER, $point->offset(0, 10)->asArr(), $this->getEnemyId());
+                $this->create(U_TOWN_CENTER, $point->offset(0, 9)->asArr(), $this->getEnemyId());
                 Efft_InvincibleU($this->getEnemyId(), U_TOWN_CENTER);
 
             $this->trig("Tower Placement", 1, 0);
@@ -498,6 +499,71 @@ function Scenario($serial) {
             U_STABLE
         ),
     ];
+
+    function wallAreas($areas) {
+        $maxAtX = [];
+        $minAtX = [];
+        $allPts = [];
+        foreach ($areas as $a) {
+            foreach (AreaPts($a) as $p) {
+                if (!array_key_exists($p[0], $maxAtX)) {
+                    $maxAtX[$p[0]] = new Point(0, 0);
+                }
+                if (!array_key_exists($p[0], $minAtX)) {
+                    $minAtX[$p[0]] = new Point(500, 500);
+                }
+                $curMax = $maxAtX[$p[0]];
+                $curMin = $minAtX[$p[0]];
+                if ($curMax == null || $p[1] >  $curMax->y) {
+                    $maxAtX[$p[0]] = new Point($p[0], $p[1]);
+                }
+                if ($curMin == null ||  $p[1] < $curMin->y) {
+                    $minAtX[$p[0]] = new Point($p[0], $p[1]);
+                }
+                array_push($allPts, new Point($p[0], $p[1]));
+            }
+        }
+        sort($maxAtX);
+        sort($minAtX);
+        $lastMax = $maxAtX[0];
+        $diffIndex = [];
+        foreach($maxAtX as $i => $max) {
+            $diff = $max->y - $lastMax->y;
+            if ($diff != 0) $diffIndex[$i] = $diff;
+            $lastMax = $max;
+        }
+        $xDiffs = [];
+        foreach ($diffIndex as $x => $diff) {
+            $aMax = null;
+            $aMin = null;
+            if ($diff < 0) {
+                $aMax = AreaPts($maxAtX[$x]->offset(0, 1)->areaFromOffset(0, -$diff));
+                $aMin = AreaPts($minAtX[$x]->offset(0, -1)->areaFromOffset(0, $diff));
+            } else {
+                $aMax = AreaPts($maxAtX[$x - 1]->offset(0, 1)->areaFromOffset(0, $diff));
+
+                $aMin = AreaPts($minAtX[$x - 1]->offset(0, -1)->areaFromOffset(0, -$diff));
+            }
+            $xDiffs = array_merge($xDiffs, $aMax);
+            $xDiffs = array_merge($xDiffs, $aMin);
+        }
+        print(count($xDiffs));
+        $res = array_merge(
+            array_map(function($pt) {
+                return $pt->offset(0, 1)->asArr();
+            }, $maxAtX), 
+            array_map(function($pt) {
+                return $pt->offset(0, -1)->asArr();
+            }, $minAtX),
+            $xDiffs
+        );
+        foreach($res as $pt) {
+            Efft_Create(0, U_OLD_STONE_HEAD, $pt);
+            setCell($pt, TERRAIN_SHALLOWS);
+        }
+        return $res;
+    }
+
     /**
      * 
      * 
@@ -523,6 +589,18 @@ function Scenario($serial) {
     }
     $PLAYERS = [1, 2, 3, 4];
     $PLAYERS = [1];
+    $Y_LENGTH = 50;
+    $MAP_OFFSET = 50;
+    $origin = new Point(GetMapSize() - $MAP_OFFSET, $MAP_OFFSET);
+    $origin = $origin->offset(0, round($Y_LENGTH / 2));
+    $X_FIXED = $origin->x;
+
+    // $areaPlayers = AreaPlayers(AreaAdvanced($origin->asArr(), 'N', 15, 100), 0, $Y_LENGTH, [1, 2, 3, 4]);
+    // setCellArea($areaPlayers[0], TERRAIN_BEACH);
+    // setCellArea($areaPlayers[1], TERRAIN_SNOW);
+    // setCellArea($areaPlayers[2], TERRAIN_ROAD);
+    // setCellArea($areaPlayers[3], TERRAIN_ROAD_BROKEN);
+    //print_r($areaPlayers);
     foreach ($PLAYERS as $i => $playerId) {
         SetPlayerMaxPop($playerId, 200);
         SetPlayerStartAge($playerId, "Imperial");
@@ -530,23 +608,24 @@ function Scenario($serial) {
 
         $regions = [
             // Enemy Spawn Zone
-            new EnemySpawnZone($playerId, TERRAIN_SNOW, 20, 20),
-            new WalledRegion($playerId, TERRAIN_ROAD, 20, 30),
-            new TowerZone($playerId, TERRAIN_ROAD_BROKEN, 23, 23),
+            new EnemySpawnZone($playerId, TERRAIN_SNOW, 31, 15),
+            new WalledRegion($playerId, TERRAIN_ROAD_FUNGUS, 31, 30),
+            new TowerZone($playerId, TERRAIN_ROAD_BROKEN, 21, 21),
             new CombatBuildingZone($playerId, TERRAIN_ROAD, 21, 21),
             new StoreZone($playerId, TERRAIN_ROAD_BROKEN, 35, 9),
-            new HouseZone($playerId, TERRAIN_ROAD_BROKEN, 35, 4),
+            new HouseZone($playerId, TERRAIN_BEACH, 35, 4),
         ];
-        $MAP_OFFSET = 15;
-        $origin = new Point(GetMapSize() - $MAP_OFFSET, $MAP_OFFSET);
-        $X_FIXED = $origin->x;
-        $Y_LENGTH = 50;
-        $origin = $origin->offset(0, round($Y_LENGTH / 2)); 
-        foreach ($regions as $region) {
-            $region->setOrigin($origin);
-            $newOrigin = $region->run();
-            $origin = $newOrigin;
+        $origins = [$origin];
+        $areas = [];
+        foreach ($regions as $i => $region) {
+            $region->setOrigin($origins[$i]);
+            array_push($origins, $origins[$i]->offset(-$region->depth));
+            array_push($areas, $region->getArea());
         }
+        foreach ($regions as $region) {
+            $region->run();
+        }
+        wallAreas($areas);
         $origin = new Point($X_FIXED, $origin->offset(0, $Y_LENGTH));
     }
     //$lastRound = null;

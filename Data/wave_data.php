@@ -126,7 +126,7 @@
         array([U_HALBERDIER, 30], [U_HUSSAR, 30], [U_ELITE_SKIRMISHER, 30]),
         array([U_PALADIN, 30], [U_CHAMPION, 30], [U_PALADIN, 30]),
     );
-    print(count($UNITS));
+    //print(count($UNITS));
     $BANNED_BUILDINGS = [U_VILLAGER_F, U_VILLAGER_M, U_BLACKSMITH, U_MARKET, U_UNIVERSITY, U_MONASTERY, U_WATCH_TOWER, U_HOUSE];
     
     // array of entitys and spawn numbers, and a time of round

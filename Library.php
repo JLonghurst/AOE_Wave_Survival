@@ -1824,6 +1824,12 @@ function setCell($point, $terrainId) {
     SetTerrainCell(round($point[0]), round($point[1]), array("terrain" => $terrainId));
 }
 
+
+function setCellArea($area, $terrainId) {
+    foreach(AreaPts($area) as $p)
+        setCell($p, $terrainId);
+}
+
 function setElevation($point, $elevation) {
     SetTerrainCell(round($point[0]), round($point[1]), array("elevation" => $elevation));
 }
