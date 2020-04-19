@@ -4,7 +4,72 @@ include('Data/wave_data.php');
 function Scenario($serial) {
     global $DEBUG;
     $DEBUG = true;
-
+    $tech_data = [
+        new Tech(
+            "Infandry Upgrade 1 (Feudal Upgrades)", 
+            U_MAN_AT_ARMS,
+            [200],  
+            [T_FEUDAL_AGE],
+            [T_MAN_AT_ARMS, T_SCALE_MAIL_ARMOR],
+        ),
+        new Tech(
+            "Infandry Upgrade 2 (Castle Upgrades + 1 Barracks)", 
+            U_LONG_SWORDSMAN,
+            [400],  
+            [T_CASTLE_AGE, T_SCALE_MAIL_ARMOR],
+            [T_LONG_SWORDSMAN, T_PIKEMAN, T_EAGLE_WARRIOR, T_SCALE_MAIL_ARMOR],
+        ),
+        new Tech(
+            "Infandry Upgrade 3 (Imperial Upgrades + 1 Barracks)", 
+            U_CHAMPION,
+            [800],  
+            [T_IMPERIAL_AGE, T_SCALE_MAIL_ARMOR],
+            [T_CHAMPION, T_TWO_HANDED_SWORDSMAN, T_SCALE_BARDING_ARMOR],
+        ),
+        new Tech(
+            "Archer Upgrade 1 (Feudal Upgrades)", 
+            U_ARCHER,
+            [200],  
+            [T_FEUDAL_AGE],
+            [T_FLETCHING, T_LEATHER_ARCHER_ARMOR],
+        ),
+        new Tech(
+            "Archer Upgrade 2 (Castle Upgrades + 1 Range)", 
+            U_CROSSBOWMAN,
+            [400],  
+            [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR],
+            [T_BODKIN_ARROW, T_PADDED_ARCHER_ARMOR, T_CROSSBOWMAN, T_ELITE_SKIRMISHER],
+        ),
+        new Tech(
+            "Archer Upgrade 3 (Imperial Upgrades + 1 Range)", 
+            U_ARBALEST,
+            [800],  
+            [T_IMPERIAL_AGE, T_PADDED_ARCHER_ARMOR],
+            [T_CAVALRY_ARCHER_A, T_ARBALEST, T_RING_ARCHER_ARMOR],
+        ),
+        new Tech(
+            "Cavalry Upgrade 1 (Feudal Upgrades)", 
+            U_SCOUT_CAVALRY,
+            [200],  
+            [T_FEUDAL_AGE],
+            [T_FORGING, T_BLOODLINES, T_SCALE_BARDING_ARMOR ],
+        ),
+        new Tech(
+            "Cavalry Upgrade 2 (Castle Upgrades + 1 Stable)", 
+            U_KNIGHT,
+            [400],  
+            [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR, T_SCALE_BARDING_ARMOR],
+            [T_FORGING,  T_PLATE_BARDING_ARMOR],
+        ),
+        new Tech(
+            "Cavalry Upgrade 3 (Imperial Upgrades + 1 Stable)", 
+            U_PALADIN,
+            [1000],  
+            [T_IMPERIAL_AGE, T_PLATE_MAIL_ARMOR],
+            [T_CAVALIER, T_PALADIN, T_HUSSAR, T_HEAVY_CAMEL, T_PLATE_BARDING_ARMOR],
+        ),
+    ];
+    
     function placeObjectInArea($p, $area, $objectId) {
         foreach (AreaPts($area) as $point) {
             Efft_Create($p, $objectId, $point);
@@ -80,9 +145,10 @@ function Scenario($serial) {
         
         function __construct($name, $unitId, $costs, $requirements, $triggerNames) {
             $this->name = $name;
+            $this->origin = $origin;
+            $this->unitId = $unitId;
             $this->costs = $costs;
             $this->requirements = $requirements;
-            $this->unitId= $unitId;
             $this->triggerNames= $triggerNames;
         }
 
@@ -102,42 +168,34 @@ function Scenario($serial) {
             $unitLocation = array($headLocation[0] - 1, $headLocation[1]);
             $killLocation = array($headLocation[0] + 1, $headLocation[1]);
 
+            $size = count($this->costs);
+            // one time event
+            Trig(uniqid(), 1, 0);
+                Efft_Create(0, U_RELIC, $relicLocation);
+                /// intiially its locked   
+                Efft_Create(0, U_OLD_STONE_HEAD, $headLocation); 
+            foreach($this->costs as $i => $cost) {
+                Efft_Create($p, $this->unitId, $unitLocation);
+                Efft_NameU(0, U_RELIC, "{$this->name} ($cost stone)", $headLocation);
+
+                Trig("P:$p {$this->name} $i", 1, 0);
+                Cond_Timer(2); // debounce the last purchase
+                Cond_Accumulate($p, $cost, R_STONE_STORAGE);
+                Cond_InAreaU($p, 1, $this->unitId, $killLocation);
+                Efft_KillU($p, $this->unitId, $killLocation);
+                Efft_Tribute($p, $cost, R_STONE_STORAGE, 0);
+                foreach ($this->triggerNames as $trigName) 
+                    Efft_Act("$trigName");
+                // place down for another round if it exists
+                if ($i != $size - 1) {
+                    $next = $i + 1;
+                    Efft_Act("P:$p {$this->name} $next");
+                }
+            }
             Trig("{$p} Block Kill Trigger {$this->name}");
                 foreach ($this->requirements as $req) 
                 Cond_Researched($p, $req);
-                Efft_RemoveO(0, $headLocation);
-
-            // one time event, intiially its locked      
-            Trig(uniqid(), 1, 0);
-                Efft_Create(0, U_OLD_STONE_HEAD, $headLocation);
-                Efft_Create(0, U_RELIC, $relicLocation);
-
-            $createUnit = uniqid();
-            Trig($createUnit, 1, 0);
-                Efft_Create($p, $this->unitId, $unitLocation);
-
-            Trig("{$p} ", 1, 0);
-            // [1, 2, 3]
-            $i = 0;
-            $firstCost = array_pop($this->costs);
-            $nextRound = null;
-            while ($nextRound != null) {
-                Trig("P:$p {$this->name} $i", 1, 0);
-                Cond_Accumulate($p, $firstCost, R_STONE_STORAGE);
-                Cond_InAreaO($p, $this->unitId, $killLocation);
-                Efft_KillY($p, Y_MILITARY, $killLocation);
-                foreach ($this->triggerNames as $trigName) 
-                Efft_Act("$p $trigName");
-
-
-                // place down for another round
-                $nextRound = array_pop($this->costs);
-                if ($nextRound != null) Efft_Act($createUnit);
-                $i++;
-
-                Efft_Create($p, $this->unitId, $point);
-                Efft_NameO($p, $this->name . " ({$this->costs[0]} stone)", $blockLocation);
-            }
+                Efft_RemoveU(0, U_OLD_STONE_HEAD, $headLocation);
         }
     }
 
@@ -349,9 +407,10 @@ function Scenario($serial) {
             $name = $this->trig("YAH BOI");
                 Efft_Chat($this->playerId, "FUUUUCK");
             $tech = new Tech(
+                "My Name Yeet",
                 $this->origin,
                 U_MILITIA,
-                [100],
+                [100, 200, 300],
                 [T_FEUDAL_AGE],
                 [$name]
             );
@@ -375,23 +434,6 @@ function Scenario($serial) {
             return parent::run();
         }
     }
-
-
-    // class EcoZone extends Zone {
-    //     function __construct($p, $area) {
-    //         parent::__construct($p, $area, TERRAIN_SNOW);
-    //     }
-    //     function run() {
-    //         parent::run();
-    //         $goldArea = offAreaXRight($this->getArea(), 10);
-    //         $treeArea = offAreaXLeft($this->getArea(), 10);
-    //         drawCellArea($goldArea, TERRAIN_DESERT);
-    //         drawCellArea($treeArea, TERRAIN_JUNGLE);
-    //         Trig("{$this->playerId} Gold Trees");
-    //             placeObjectInArea(0, $goldArea, U_GOLD_MINE);
-    //             placeObjectInArea(0, $treeArea, U_TREE_E);
-    //     }
-    // }   
     
     /**
      * 
@@ -421,14 +463,6 @@ function Scenario($serial) {
     $o[1] += round($Y_LENGTH / 2); 
 
     foreach ([1, 2, 3, 4] as $i => $playerId) {
-
-        // $techs = new Tech(
-        //     "Fletching and Padded Archer Armor",
-        //     U_ARCHER, // unit to make
-        //     [300, 200], // costs (array)
-        //     [T_FEUDAL_AGE], // requirements 
-        //     array(T_FLETCHING, T_PADDED_ARCHER_ARMOR), // run research
-        // );
     }
     $PLAYERS = [1, 2, 3, 4];
     $PLAYERS = [1];

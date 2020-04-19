@@ -145,31 +145,8 @@
         //     "name" => "Brutal",
         // ),
     );
-   
-//     // [relic label, cost, technology requirements, technologies to research, trigger name (or none), relic location]
-//    $tech_data = [
-//       // Archer Line
-    //    array("Fletching and Padded Archer Armor", 300, array(T_FEUDAL_AGE),
-    //            array(T_FLETCHING, T_PADDED_ARCHER_ARMOR), "", array(34, 30)),
-    //    array("Man At Arms, Forging, Scale Mail Armor", 300, array(T_FEUDAL_AGE),
-    //            array(T_MAN_AT_ARMS, T_FORGING, T_SCALE_MAIL_ARMOR), "", array(34, 32)),
-    //    array("Bloodlines, Scale Barding Armor", 300, array(T_FEUDAL_AGE),
-    //            array(T_BLOODLINES, T_SCALE_BARDING_ARMOR), "", array(34, 34)),
-      
-    //    array("Crossbow, Elite Skirms, Balistics, Bodkin, and Leather Archer Armor", 600, array(T_CASTLE_AGE, T_FLETCHING),
-    //            array(T_CROSSBOWMAN, T_ELITE_SKIRMISHER, T_BODKIN_ARROW, T_BALLISTICS, T_LEATHER_ARCHER_ARMOR), "", array(34, 38)),
-    //    array("Long Swordsman, Eagle Scout, Pikemen, Chain Mail Armor", 600,  array(T_CASTLE_AGE, T_FORGING),
-    //            array(T_LONG_SWORDSMAN, T_EAGLE_SCOUT_A, T_PIKEMAN, T_CHAIN_MAIL_ARMOR), "", array(34, 40)),
-    //    array("Light Cavalry, Chain Barding Armor, Iron Casting", 600, array(T_CASTLE_AGE, T_SCALE_BARDING_ARMOR),
-    //            array(T_LIGHT_CAVALRY, T_CHAIN_BARDING_ARMOR, T_IRON_CASTING), "", array(34, 42)),      
-      
-    //    array("Arbalest, Heavy Cav Archer, Bracer, Ring Archer Armor", 500, array(T_IMPERIAL_AGE, T_BODKIN_ARROW),
-    //            array(T_ARBALEST, T_HEAVY_CAVALRY_ARCHER, T_BRACER, T_RING_ARCHER_ARMOR), "", array(34, 46)),
-    //    array("Champian, Halbs, Plate Mail Armor, Blast Furnace", 1000, array(T_IMPERIAL_AGE, T_CHAIN_MAIL_ARMOR),
-    //            array(T_TWO_HANDED_SWORDSMAN, T_CHAMPION, T_HALBERDIER, T_PLATE_MAIL_ARMOR, T_BLAST_FURNACE), "", array(34, 48)),
-    //    array("Palidin, Hussar, Heavy Camel, Plate Barding Armor", 1500, array(T_IMPERIAL_AGE, T_IRON_CASTING),
-    //            array(T_CAVALIER, T_PALADIN, T_HUSSAR, T_HEAVY_CAMEL, T_PLATE_BARDING_ARMOR), "", array(34, 50)),
 
+    
     //    array("Imperial Seige, Siege Engineers", 500, array(T_IMPERIAL_AGE),
     //            array(T_HEAVY_SCORPION, T_ONAGER, T_CAPPED_RAM, T_SIEGE_ENGINEERS), "", array(34, 52)),
     //    array("Post-Imperial Seige", 500, array(T_IMPERIAL_AGE, T_SIEGE_ENGINEERS),
@@ -197,5 +174,4 @@
         
     //     array("Architecture, Tower Attack/Range +5, Health Regain 20/sec",  500, array(T_IMPERIAL_AGE, T_MASONRY),
     //             array(T_ARCHITECTURE), "Tower Upgrade 3", array(40, 51))
-    // ];
 ?>
