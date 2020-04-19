@@ -4,78 +4,105 @@ include('Data/wave_data.php');
 function Scenario($serial) {
     global $DEBUG;
     $DEBUG = true;
-    $tech_data = [
-        new Tech(
-            "Infandry Upgrade 1 (Feudal Upgrades)", 
-            U_MAN_AT_ARMS,
-            [200],  
-            [T_FEUDAL_AGE],
-            [T_MAN_AT_ARMS, T_SCALE_MAIL_ARMOR],
-        ),
-        new Tech(
-            "Infandry Upgrade 2 (Castle Upgrades + 1 Barracks)", 
-            U_LONG_SWORDSMAN,
-            [400],  
-            [T_CASTLE_AGE, T_SCALE_MAIL_ARMOR],
-            [T_LONG_SWORDSMAN, T_PIKEMAN, T_EAGLE_WARRIOR, T_SCALE_MAIL_ARMOR],
-        ),
-        new Tech(
-            "Infandry Upgrade 3 (Imperial Upgrades + 1 Barracks)", 
-            U_CHAMPION,
-            [800],  
-            [T_IMPERIAL_AGE, T_SCALE_MAIL_ARMOR],
-            [T_CHAMPION, T_TWO_HANDED_SWORDSMAN, T_SCALE_BARDING_ARMOR],
-        ),
-        new Tech(
-            "Archer Upgrade 1 (Feudal Upgrades)", 
-            U_ARCHER,
-            [200],  
-            [T_FEUDAL_AGE],
-            [T_FLETCHING, T_LEATHER_ARCHER_ARMOR],
-        ),
-        new Tech(
-            "Archer Upgrade 2 (Castle Upgrades + 1 Range)", 
-            U_CROSSBOWMAN,
-            [400],  
-            [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR],
-            [T_BODKIN_ARROW, T_PADDED_ARCHER_ARMOR, T_CROSSBOWMAN, T_ELITE_SKIRMISHER],
-        ),
-        new Tech(
-            "Archer Upgrade 3 (Imperial Upgrades + 1 Range)", 
-            U_ARBALEST,
-            [800],  
-            [T_IMPERIAL_AGE, T_PADDED_ARCHER_ARMOR],
-            [T_CAVALRY_ARCHER_A, T_ARBALEST, T_RING_ARCHER_ARMOR],
-        ),
-        new Tech(
-            "Cavalry Upgrade 1 (Feudal Upgrades)", 
-            U_SCOUT_CAVALRY,
-            [200],  
-            [T_FEUDAL_AGE],
-            [T_FORGING, T_BLOODLINES, T_SCALE_BARDING_ARMOR ],
-        ),
-        new Tech(
-            "Cavalry Upgrade 2 (Castle Upgrades + 1 Stable)", 
-            U_KNIGHT,
-            [400],  
-            [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR, T_SCALE_BARDING_ARMOR],
-            [T_FORGING,  T_PLATE_BARDING_ARMOR],
-        ),
-        new Tech(
-            "Cavalry Upgrade 3 (Imperial Upgrades + 1 Stable)", 
-            U_PALADIN,
-            [1000],  
-            [T_IMPERIAL_AGE, T_PLATE_MAIL_ARMOR],
-            [T_CAVALIER, T_PALADIN, T_HUSSAR, T_HEAVY_CAMEL, T_PLATE_BARDING_ARMOR],
-        ),
-    ];
-    
+
     function placeObjectInArea($p, $area, $objectId) {
         foreach (AreaPts($area) as $point) {
             Efft_Create($p, $objectId, $point);
             setCell($point, TERRAIN_FARM);
         }
     }
+
+    class Point {
+        private $x;
+        private $y;
+
+        function __construct($x, $y) {
+            $this->x = $x;
+            $this->y = $y;
+        }
+
+        function offset($dx, $dy = 0) {
+            return new Point($this->x + $dx, $this->y + $dy);
+        }
+
+        function asArr() {
+            return array($this->x, $this->y);
+        }
+
+        /**
+         * Returns the area created by the bounding box
+         * of the two points
+         *
+         * @param Point $p2
+         * @return Area
+         */
+        public function areaFromP2($p2) {
+            return Area($this->x, $this->y, $p2->x, $p2->y);
+        }
+    }
+
+    class PlayerRegion {
+        public $orientation = 'N';
+        public $terrainId;
+        /**
+         * @var Point $origin: the origin of the areaRegion
+         */
+        public $origin;
+
+        public $width;
+        public $depth;
+
+        public $playerId;
+
+        /**
+         * Creates a new PlayerRegion
+         *
+         * @param int $playerId - the playerId of the region
+         * @param int $terrainId - the terrain of the region
+         * @param int $width - the width of the region
+         * @param int $depth
+         */
+        function __construct($playerId, $terrainId, $width, $depth) {
+            $this->playerId = $playerId;
+            $this->terrainId = $terrainId;
+            $this->width = $width;
+            $this->depth = $depth;
+        }
+
+        
+        public function setOrigin($oPt) {
+            $this->origin = $oPt;
+        }
+
+        public function getArea() {
+            return AreaAdvanced($this->p->asArr(), $this->orientation, $this->width, $this->depth);
+        }
+        public function getEnemyId() {
+            return $this->playerId + 4;
+        }
+
+        public function getCenter() {
+            return array($this->origin->x->offX(round($this->width / 2)), $this->origin->y);
+        }
+
+        public function trig($name, $s = 1, $l = 0) {
+            $name = "$this->playerId: $name";
+            Trig($name, $s, $l);
+            return $name;
+        }
+
+        public function create($u, $l) {
+            Efft_Create($this->player, $u, $l);
+        }
+
+        // renders this zone for a player
+        public function run() {
+            foreach(AreaPts($this->getArea()) as $pt) 
+                setCell($pt, $this->terrainId);
+            return [$this->xOffset, $this->yOffset];
+        }
+    }
+
     class Round {
         public $roundNum;
         // time until this round plays
@@ -137,17 +164,18 @@ function Scenario($serial) {
     class Tech {
         public $origin;
         public $name; 
-        public  $costs; 
-        public  $requirements; 
-        public  $unitId; 
+        public $costs; 
+        public $requirements; 
+        public $unitId; 
+        public $buildingId;
         // nullable, can make a trigger optionally
         public $triggerNames;
         
-        function __construct($name, $unitId, $costs, $requirements, $triggerNames) {
+        function __construct($name, $unitId, $costs, $requirements, $triggerNames, $buildingId) {
             $this->name = $name;
-            $this->origin = $origin;
             $this->unitId = $unitId;
             $this->costs = $costs;
+            $this->buildingId = $buildingId;
             $this->requirements = $requirements;
             $this->triggerNames= $triggerNames;
         }
@@ -198,52 +226,86 @@ function Scenario($serial) {
                 Efft_RemoveU(0, U_OLD_STONE_HEAD, $headLocation);
         }
     }
+    $TECH_DATA = [
+        new Tech(
+            "Infandry Upgrade 1 (Feudal Upgrades)", 
+            U_MAN_AT_ARMS,
+            [200],  
+            [T_FEUDAL_AGE],
+            [T_MAN_AT_ARMS, T_SCALE_MAIL_ARMOR],
+            U_BARRACKS
+        ),
+        new Tech(
+            "Infandry Upgrade 2 (Castle Upgrades + 1 Barracks)", 
+            U_LONG_SWORDSMAN,
+            [400],  
+            [T_CASTLE_AGE, T_SCALE_MAIL_ARMOR],
+            [T_LONG_SWORDSMAN, T_PIKEMAN, T_EAGLE_WARRIOR, T_SCALE_MAIL_ARMOR],
+            U_BARRACKS
+        ),
+        new Tech(
+            "Infandry Upgrade 3 (Imperial Upgrades + 1 Barracks)", 
+            U_CHAMPION,
+            [800],  
+            [T_IMPERIAL_AGE, T_SCALE_MAIL_ARMOR],
+            [T_CHAMPION, T_TWO_HANDED_SWORDSMAN, T_SCALE_BARDING_ARMOR],
+            U_BARRACKS
+        ),
+        new Tech(
+            "Archer Upgrade 1 (Feudal Upgrades)", 
+            U_ARCHER,
+            [200],  
+            [T_FEUDAL_AGE],
+            [T_FLETCHING, T_LEATHER_ARCHER_ARMOR],
+            U_ARCHERY_RANGE
+        ),
+        new Tech(
+            "Archer Upgrade 2 (Castle Upgrades + 1 Range)", 
+            U_CROSSBOWMAN,
+            [400],  
+            [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR],
+            [T_BODKIN_ARROW, T_PADDED_ARCHER_ARMOR, T_CROSSBOWMAN, T_ELITE_SKIRMISHER],
+            U_ARCHERY_RANGE
+        ),
+        new Tech(
+            "Archer Upgrade 3 (Imperial Upgrades + 1 Range)", 
+            U_ARBALEST,
+            [800],  
+            [T_IMPERIAL_AGE, T_PADDED_ARCHER_ARMOR],
+            [T_CAVALRY_ARCHER_A, T_ARBALEST, T_RING_ARCHER_ARMOR],
+            U_ARCHERY_RANGE
+        ),
+        new Tech(
+            "Cavalry Upgrade 1 (Feudal Upgrades)", 
+            U_SCOUT_CAVALRY,
+            [200],  
+            [T_FEUDAL_AGE],
+            [T_FORGING, T_BLOODLINES, T_SCALE_BARDING_ARMOR ],
+            U_STABLE
+        ),
+        new Tech(
+            "Cavalry Upgrade 2 (Castle Upgrades + 1 Stable)", 
+            U_KNIGHT,
+            [400],  
+            [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR, T_SCALE_BARDING_ARMOR],
+            [T_FORGING,  T_PLATE_BARDING_ARMOR],
+            U_STABLE
+        ),
+        new Tech(
+            "Cavalry Upgrade 3 (Imperial Upgrades + 1 Stable)", 
+            U_PALADIN,
+            [1000],  
+            [T_IMPERIAL_AGE, T_PLATE_MAIL_ARMOR],
+            [T_CAVALIER, T_PALADIN, T_HUSSAR, T_HEAVY_CAMEL, T_PLATE_BARDING_ARMOR],
+            U_STABLE
+        ),
+    ];
 
-    class Zone {
-        public $playerId;
-        public $terrainId;
-        public $origin;
-        public $yOffset;
-        public $xOffset;
-
-        public function __construct($playerId, $origin, $xOffset, $yOffset, $terrainId = TERRAIN_DESERT) {
-            $this->playerId = $playerId;
-            $this->origin = $origin;
-            $this->xOffset = $xOffset;
-            $this->yOffset = $yOffset;
-            $this->terrainId = $terrainId;
+    class WalledRegion extends PlayerRegion {
+        function __construct($playerId, $width, $depth) {
+            parent::__construct($playerId, $width, $depth);
         }
 
-        public function getArea() {
-            return AreaAdvanced($this->origin, 'N', $this->yOffset, $this->xOffset);
-        }
-
-        public function trig($name, $on = 1) {
-            $name = "{$this->playerId} $name";
-            Trig($name, $on);
-            return $name;
-        }
-
-        public function getEnemyId() {
-            return $this->playerId + 4;
-        }
-
-        public function getCenter() {
-            return array($this->origin[0] - round($this->xOffset / 2), $this->origin[1]);
-        }
-
-        // renders this zone for a player
-        public function run() {
-            foreach(AreaPts($this->getArea()) as $pt) 
-                setCell($pt, $this->terrainId);
-            return [$this->xOffset, $this->yOffset];
-        }
-    }
-
-    class WalledZone extends Zone {
-        public function __construct($playerId, $origin, $xOffset, $yOffset, $tId = TERRAIN_ROCK_ROAD) {
-            parent::__construct($playerId, $origin, $xOffset, $yOffset, $tId);
-        }
         public function run() {
             $this->placeWall();
             return parent::run();
@@ -255,9 +317,11 @@ function Scenario($serial) {
         }
     }
 
-    class EnemySpawnZone extends WalledZone {
+    class EnemySpawnZone extends WalledRegion {
+        public $terrainId = TERRAIN_SNOW;
+
         function __construct($p, $pArea, $terrainId = TERRAIN_SNOW) {
-            parent::__construct($p, $pArea, 20, 31, $terrainId);
+            parent::__construct($p, $pArea,  $terrainId);
         }
         
         function run() {
@@ -271,12 +335,12 @@ function Scenario($serial) {
 
         private function killZoneTriggers() {
             // Creates Kill Zone in the area where enemyId buildings spawn
-            Trig("{$this->playerId} Kill Zone", 1, 1);
+            $this->trig("Kill Zone", 1, 1);
             Cond_InAreaY($this->playerId, Y_MILITARY, 1, $this->getArea());
             Efft_Chat($this->playerId, "<RED> No player units are not allowed in the enemyId spawning area");
             Efft_KillY($this->playerId, Y_MILITARY, $this->getArea());
             if ($GLOBALS['DEBUG']) {
-                Trig("{$this->playerId} Kill Zone Enemy", 1, 1);
+                $this->trig("Kill Zone Enemy", 1, 1);
                     Cond_InAreaY($this->playerId, 1, Y_MILITARY, $this->getArea());
                     Efft_KillY($this->playerId, Y_MILITARY, $this->getArea());
             }
@@ -301,16 +365,7 @@ function Scenario($serial) {
         }
     }
 
-    class EnemyPathZone extends WalledZone {
-        function __construct($p, $pArea, $terrainId = TERRAIN_DIRT_1) {
-            parent::__construct($p, $pArea, 30, 31, $terrainId);
-        }
-    }
-
-    class TowerZone extends WalledZone {
-        function __construct($p, $area) {
-            parent::__construct($p, $area, 21, 21, TERRAIN_ROAD_BROKEN);
-        }
+    class TowerZone extends WalledRegion {
         function run() {
             $this->placeTower($this->getCenter());
             return parent::run();
@@ -322,19 +377,20 @@ function Scenario($serial) {
                 foreach (AreaPts(AreaSet($point, $e + 2 - $i)) as $p) 
                     setElevation($p, $i);
             
-            Trig("{$this->playerId} Town Center");
+            $this->trig("Enemy Town Center");
                 Efft_RemoveO($this->getEnemyId());
+                $this->create(U_TOWN_CENTER, $point);
                 Efft_Create($this->getEnemyId(), U_TOWN_CENTER, [$point[0], $point[1] + 9]);
             
-            Trig("{$this->playerId} Tower Placement", 1, 0);
-                Efft_Create($this->playerId, U_WATCH_TOWER, $point);
+            $this->trig("Tower Placement", 1, 0);
+                $this->create(U_WATCH_TOWER, $point);
                 Efft_Act("{$this->playerId} Tower Death");
 
                 // Town Center is indestrucable
-            Trig("{$this->playerId} EnemyId Town Center Invunerable", 1, 1);
+            $this->trig("EnemyId Town Center Invunerable", 1, 1);
                 Efft_InvincibleU($this->getEnemyId(), U_TOWN_CENTER);
 
-            Trig("{$this->playerId} Tower Death", 0, 0, 1, "111", "Do not let your tower be destroyed by the enemyId buildings");
+            $this->trig("Tower Death", 0, 0, 1, "111", "Do not let your tower be destroyed by the enemyId buildings");
                 Cond_NotOwnU($this->playerId, 1, U_WATCH_TOWER);
                 Efft_Chat($this->playerId, "<RED> You lost your tower! gg fam");
                 Efft_Display(10, 0, "<RED> You lost your tower! gg fam");
@@ -342,31 +398,31 @@ function Scenario($serial) {
                 Efft_Display(10, 2, "<RED> You lost your tower! gg fam");
                 Efft_Act("{$this->playerId} End Game Chat 1");
             
-            Trig("{$this->playerId} Game Over", 0, 0);
+            $this->trig("Game Over", 0, 0);
                 Cond_Timer(6);
                 Efft_DeclareVictory($this->getEnemyId());
                 
-            Trig("{$this->playerId} End Game Chat 2", 0, 0);
+            $this->trig("End Game Chat 2", 0, 0);
                 Cond_Timer(5);
                 Efft_Chat($this->playerId, 27);
                 Efft_Act("{$this->playerId} Game Over");
             
-            Trig("{$this->playerId} End Game Chat 1", 0, 0);
+            $this->trig("End Game Chat 1", 0, 0);
                 Cond_Timer(3);
                 Efft_Chat($this->playerId, 26);
                 Efft_Act("{$this->playerId} End Game Chat 2");
                 
 
-            Trig("{$this->playerId} Tower Health Regain", 1, 1);
+            $this->trig("Tower Health Regain", 1, 1);
                 Cond_Timer(1);
                 Efft_DamageY($this->playerId, -1, Y_BUILDING, $point);
-            // Trig("{$this->playerId} Tower Health Regain x10", 0, 1);
+            // $this->trig("Tower Health Regain x10", 0, 1);
             //     Cond_Timer(1);
             //     Efft_DamageY($this->playerId, -10, Y_BUILDING, $point);
         }
     }
 
-    class CombatBuildingZone extends WalledZone {
+    class CombatBuildingZone extends WalledRegion {
         function __construct($p, $origin, $tId = TERRAIN_ROAD) {
             parent::__construct($p, $origin, 21, 21, $tId);
         }
@@ -397,9 +453,23 @@ function Scenario($serial) {
             parent::placeWall();
             placeObjectInArea(0, offAreaYDown($this->getArea(), 1), U_OLD_STONE_HEAD);
         }
+
+        function getStoreTriggers($techData) {
+            foreach ($techData as $storeItem) {
+                $storeItem->triggerName = $this->trig("FUCK EM");
+                switch($storeItem->buildingId) {
+                    case U_STABLE:
+                        Efft_Create($this->playerId, U_STABLE, $this->origin);
+                    case U_STABLE:
+                        Efft_Create($this->playerId, U_STABLE, $this->origin);
+                    case U_STABLE:
+                        Efft_Create($this->playerId, U_STABLE, $this->origin);
+                }
+            }
+        }
     }
 
-    class StoreZone extends WalledZone {
+    class StoreZone extends WalledRegion {
         function __construct($p, $origin, $tId = TERRAIN_ROAD_BROKEN) {
             parent::__construct($p, $origin, 9, 35, $tId);
         }
@@ -415,7 +485,7 @@ function Scenario($serial) {
                 [$name]
             );
             $tech->origin = $this->origin;
-            $tech->placeAtLocation($this->playerId);
+            //$tech->placeAtLocation($this->playerId);
             return parent::run();
         }
         public function placeWall() {
@@ -424,7 +494,7 @@ function Scenario($serial) {
         }
     }
 
-    class HouseZone extends WalledZone {
+    class HouseZone extends WalledRegion {
         function __construct($p, $origin, $tId = TERRAIN_DESERT) {
             parent::__construct($p, $origin, 9, 30, $tId);
         }
@@ -470,25 +540,27 @@ function Scenario($serial) {
         SetPlayerMaxPop($playerId, 200);
         SetPlayerStartAge($playerId, "Imperial");
         SetPlayerDisabilitybuildingList($playerId, $GLOBALS['BANNED_BUILDINGS']);
-        $enemyZone = new EnemySpawnZone($playerId, $o);
-        $o[0] -= $enemyZone->run()[0];
-        $pathZone = new EnemyPathZone($playerId, $o);
-        $o[0] -= $pathZone->run()[0];
-        $towerZone = new TowerZone($playerId, $o);
-        $o[0] -= $towerZone->run()[0];
-        $combatBuildingZone = new CombatBuildingZone($playerId, $o);
-        $o[0] -= $combatBuildingZone->run()[0];
-        $StoreZone = new StoreZone($playerId, $o);
-        $o[0] -= $StoreZone->run()[0];
-        $HouseZone = new HouseZone($playerId, $o);
-        $o[0] -= $HouseZone->run()[0];
-        $o[1] += $Y_LENGTH;
-        $o[0] = $X_FIXED;
+
+        $regions = [
+            // Enemy Spawn Zone
+            new EnemySpawnZone($playerId, 20, 31),
+            new WalledRegion($playerId, 30, 20),
+            new TowerZone($playerId, 30, 20),
+            new CombatBuildingZone($playerId, 30, 20),
+            new StoreZone($playerId, 30, 20),
+            new HouseZone($playerId, 30, 20),
+        ];
+        $origin = new Point(GetMapSize() - $MAP_OFFSET, $MAP_OFFSET);
+        foreach ($regions as $region) {
+            $region->setOrigin($origin);
+            $newOrigin = $region->run();
+            $origin = $newOrigin;
+        }
+        $origin = new Point($X_FIXED, $origin->y->offset($Y_LENGTH));
     }
     //$lastRound = null;
 
     
-    // $techs->placeAtLocation(1, array(125, 125));
     // Trig("Intro Prompt", 1, 0);
     //     //Efft_Research(1, T_TOWN_WATCH);
     //     Efft_ChangeView(1, array(37, 27));
