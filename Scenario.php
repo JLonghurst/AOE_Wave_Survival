@@ -16,22 +16,22 @@ function Scenario($serial) {
             $this->playerId = $playerId;
         }
 
-        public function getName($name) {
-            return "{$this->playerId}: $name";
+        public function getName($objectName) {
+            return "{$this->playerId}: $objectName";
         }
 
-        public function trig($name, $S = 1, $L = 0, $P = 0, $E = 0, $D = '', $R = '') {
-            $name = $this->getName($name);
-            Trig($name, $S, $L, $P, $E, $D, $R);
-            return $name;
+        public function trig($triggerName, $S = 1, $L = 0, $P = 0, $E = 0, $D = '', $R = '') {
+            $relicName = $this->getName($triggerName);
+            Trig($triggerName, $S, $L, $P, $E, $D, $R);
+            return $triggerName;
         }
 
         public function getEnemyId() {
             return $this->playerId + 1;
         }
 
-        public function act($name) {
-            Efft_Act($this->getName($name));
+        public function act($triggerName) {
+            Efft_Act($this->getName($triggerName));
         }
 
         public function chat($text) {
@@ -144,6 +144,8 @@ function Scenario($serial) {
             return $this->origin->offset(-$this->depth);
         }
 
+        public function placeStoreTriggersAt($storeOrigin) { }
+
         public function createAreaRow($offsetX, $origin = null, $width = null) {
             $origin = $origin != null ? $origin : $this->origin;
             $origin = $origin->offset($offsetX);
@@ -152,7 +154,7 @@ function Scenario($serial) {
         }
 
         // renders this zone for a player
-        public function run() {
+        public function render() {
             foreach(AreaPts($this->getArea()) as $pt) 
                 setCell($pt, $this->terrainId);
         }
@@ -176,14 +178,14 @@ function Scenario($serial) {
             $this->units = $units;
         }
 
-        function runWave() {
-            $name = nameFromUnit($this->units);
-            $this->trig($name, 1, 0);
+        function renderWave() {
+            $relicName = nameFromUnit($this->units);
+            $this->trig($relicName, 1, 0);
                 Cond_Timer($this->time);
             // give the play goodies
             Efft_Give($this->playerId, $this->payment, STONE);
             $this->chat("<GREEN> {$this->payment} stone for round advancement");
-            $this->chat("<RED> Round {$this->roundNum}: {$name}");
+            $this->chat("<RED> Round {$this->roundNum}: {$relicName}");
             // spawn the waves units
             foreach((array)$this->units as $i => $unit) {
                 $unitId = $unit[0];
@@ -219,8 +221,8 @@ function Scenario($serial) {
     } 
 
     class EnemySpawnZone extends PlayerRegion {
-        function run() {
-            parent::run();
+        function render() {
+            parent::render();
             $this->killZoneTriggers();
             $time = 5;
             $waves = array();
@@ -238,7 +240,7 @@ function Scenario($serial) {
                 $wave->setWidth($this->width);
                 $wave->setDepth($this->depth);
                 $wave->setPlayerId($this->playerId);
-                $wave->runWave();
+                $wave->renderWave();
             }
         }
 
@@ -257,8 +259,8 @@ function Scenario($serial) {
     }
 
     class TowerZone extends PlayerRegion {
-        function run() {
-            parent::run();
+        function render() {
+            parent::render();
             $this->setTowerElevation();
 
             $this->trig("Enemy Town Center");
@@ -302,49 +304,75 @@ function Scenario($serial) {
 
     class CombatBuildingZone extends PlayerRegion {
         private $DISTANCE = 6;
-        function run() {
-            parent::run();
+        function render() {
+            parent::render();
             $this->trig("Initial Placement");
-                $this->create(U_ARCHERY_RANGE, $this->origin->offset(-$this->DISTANCE + 1));
-                $this->create(U_BARRACKS, $this->origin->offset(-$this->DISTANCE + 1, -$this->DISTANCE));
-                $this->create(U_STABLE, $this->origin->offset(-$this->DISTANCE + 1, $this->DISTANCE));
+                foreach ([U_ARCHERY_RANGE, U_BARRACKS, U_STABLE] as $buildingId)
+                    $this->create($buildingId, $this->getBaseOffsetForObject($buildingId));
         }
 
-        function getStoreTriggers($techData) {
+        public function getBaseOffsetForObject($buildingId) {
+            $barracksPoint = $this->origin->offset(-$this->DISTANCE + 1);
+            switch($buildingId) {
+                case U_STABLE:
+                    return $barracksPoint->offset(0, $this->DISTANCE);
+                    break;
+                case U_ARCHERY_RANGE:
+                    return $barracksPoint->offset(0, $this->DISTANCE);
+                    break;
+                case U_BARRACKS:
+                    return $barracksPoint;
+            }
+        }
+
+        public function placeStoreTriggersAt($storeOrigin) {
+            foreach ($GLOBALS['TECH_DATA'] as $techRaw) {
+                $tech = new Tech(
+                    $techRaw[0],
+                    $techRaw[1],
+                    $techRaw[2],
+                );
+                $tech->setRequirements($techRaw[3]);
+                $buildingId = $techRaw[5];
+                $flag = 0;
+                if (in_array($tech->unitId, [U_LONG_SWORDSMAN, U_CROSSBOWMAN, U_KNIGHT])) {
+                    $flag = 1;
+                } else if (in_array($tech->unitId, [U_CHAMPION, U_KNIGHT, U_PALADIN])) {
+                    $flag = 2;
+                }
+                // create the object trigger
+                if ($flag) {
+                    $origin = $this->getBaseOffsetForObject($buildingId);
+                    $pt = $origin->offset(-$flag*$this->DISTANCE);
+                    $tech->setTriggerName(
+                        $this->trig(uniqid(), 0)
+                    );
+                        $this->create($buildingId, $pt);
+                }
+                
+            }
         }
     }
 
     class StoreZone extends PlayerRegion {
-        function run() {
-            $name = $this->trig("YAH BOI");
-                $this->chat("FUUUUCK");
-            $tech = new Tech(
-                "My Name Yeet",
-                $this->origin,
-                U_MILITIA,
-                [100, 200, 300],
-                [T_FEUDAL_AGE],
-                [$name]
-            );
-            $tech->origin = $this->origin;
-            //$tech->placeAtLocation($this->playerId);
-            parent::run();
+        function render() {
+            parent::render();
         }
     }
 
     class HouseZone extends PlayerRegion {
-        function run() {
+        function render() {
             $this->trig("House Place");
                 $this->createInArea(U_HOUSE, $this->getArea());
-            parent::run();
+            parent::render();
         }
     }
 
     class EcoZone extends PlayerRegion {
         private $goldOffset = 10;
 
-        function run() {
-            parent::run();
+        function render() {
+            parent::render();
             $goldOffset = $this->getCenter()->offset(0, -$this->goldOffset);
             $lumberCamp = $this->getZoneEnd()->offset(4);
             $treeArea = $this->createAreaRow(1, $this->getZoneEnd());
@@ -359,167 +387,101 @@ function Scenario($serial) {
                 $this->createInArea(U_GOLD_MINE, $goldArea, 0);
             $this->trig("Tree Placement", 1, 1);
                 $this->createInArea(U_TREE_A, $treeArea, 0);
-            
-            $this->getStoreTriggers();
         }
 
-        function getStoreTriggers() {
+        public function placeStoreTriggersAt($storeOrigin) {
             $vilSpawnArea = $this->createAreaRow(1, $this->origin->offset(-3), 5);
             $createVilTech = new Tech(
                 "Create 5 Vils",
                 U_VILLAGER_M,
-                [100, 200, 400, 800],
-                null,
-                $this->trig("Create 5 Vils"),
-                null
+                [100, 200, 400, 800]
+            );
+            $createVilTech->setPlayerId($this->playerId);
+            $createVilTech->setTriggerName(
+                $this->trig("Create 5 Vils")
             );
                 $this->createInArea(U_VILLAGER_M, $vilSpawnArea);
-            $createVilTech->setOrigin($this->origin->offset(3));
-            $createVilTech->placeAtLocation($this->playerId);
+            $createVilTech->placeAtLocation($storeOrigin->offset(-9));
+            $createVilTech->placeAtLocation($storeOrigin->offset(-4));
         }
     }
 
     class Tech extends PlayerRegion {
-        public $name; 
+        public $WALL_MATERIAL = U_OLD_STONE_HEAD;
+
+        public $relicName; 
         public $costs; 
-        public $requirements; 
+        public $requirements = []; 
         public $unitId; 
         public $buildingId;
         // nullable, can make a trigger optionally
         public $triggerName;
-        
-        public $WALL_MATERIAL = U_OLD_STONE_HEAD;
 
-        function __construct($name, $unitId, $costs, $requirements, $triggerName, $buildingId) {
-            $this->name = $name;
+        public $row = 0;
+        public $positionIndex;
+
+
+        function __construct($relicName, $unitId, $costs) {
+            $this->relicName = $relicName;
             $this->unitId = $unitId;
             $this->costs = $costs;
-            $this->requirements = $requirements;
-            $this->triggerName = $triggerName;
-            $this->buildingId = $buildingId;
         }
 
-        function placeAtLocation($p) {
-            $this->setPlayerId($p);
-            if ($this->origin == null) print("FUCK U NEED AN ORIGIN ");
-            
-            // give meaningful names to data array
+        public function setRequirements($requirements) {
+            $this->requirements = $requirements;
+        }
+
+        public function setTriggerName($triggerName) {
+            $this->triggerName = $triggerName;
+        }
+
+
+        function getNameIndexString($relicName, $index) {
+            return "$relicName $index";
+         }
+
+        function placeAtLocation($location) {
+            // give meaningful relicNames to data array
             // x is offset by 2 on map
             // lan    $Length_Xs are 2
-            $headLocation = $this->origin;
-            $relicLocation = $this->origin->offset(-2);
-            $unitLocation = $this->origin->offset(-1);
-            $killLocation = $this->origin->offset(1);
+            $headLocation = $location;
+            $relicLocation = $location->offset(-2);
+            $unitLocation = $location->offset(-1);
+            $killLocation = $location->offset(1);
 
             $size = count($this->costs);
+
             // one time event
             Trig(uniqid(), 1, 0);
-                Efft_Act("P:$p {$this->name} 0");
+                $this->act($this->getNameIndexString($this->relicName, 0));
                 $this->createGaia(U_RELIC, $relicLocation);
             foreach($this->costs as $i => $cost) {
                 $this->create($this->unitId, $unitLocation);
-                Efft_NameU(0, U_RELIC, "{$this->name} ($cost stone)", $headLocation->asArr());
-
-                Trig("P:$p {$this->name} $i", 0, 0);
+                Efft_NameU(0, U_RELIC, "{$this->relicName} ($cost stone)", $headLocation->asArr());
+                $this->trig($this->getNameIndexString($this->relicName, $i), 0);
                     Cond_Timer(2); // debounce the last purchase
-                    Cond_Accumulate($p, $cost, R_STONE_STORAGE);
-                    Cond_InAreaU($p, 1, $this->unitId, $killLocation->asArr());
-                    Efft_KillU($p, $this->unitId, $killLocation->asArr());
-                    Efft_Tribute($p, $cost, R_STONE_STORAGE, 0);
+                    Cond_Accumulate($this->playerId, $cost, R_STONE_STORAGE);
+                    Cond_InAreaU($this->playerId, 1, $this->unitId, $killLocation->asArr());
+                    Efft_KillU($this->playerId, $this->unitId, $killLocation->asArr());
+                    Efft_Tribute($this->playerId, $cost, R_STONE_STORAGE, 0);
                     Efft_Act($this->triggerName);
                 // place down for another round if it exists
-                if ($i != $size - 1) {
-                    $next = $i + 1;
-                    Efft_Act("P:$p {$this->name} $next");
-                }
+                if ($i != $size - 1) 
+                    $this->act($this->getNameIndexString($this->relicName, $i + 1));
             }
             $this->trig(uniqId());
                 /// will place wall over blocked location
                 $this->createInArea($this->WALL_MATERIAL, AreaSet($unitLocation->asArr()), 0);
                 $this->createInArea($this->WALL_MATERIAL, AreaSet($killLocation->asArr()), 0);
                 Efft_RemoveO(0, $killLocation->asArr());
-            Trig("{$p} Block Kill Trigger {$this->name}");
-                if (is_array($this->requirements))
-                    foreach ($this->requirements as $req) 
-                        Cond_Researched($p, $req);
+            
+            $this->trig("Block Kill Trigger {$this->relicName}");
                 Efft_RemoveU(0, U_OLD_STONE_HEAD, $headLocation->asArr());
+                if (is_array($this->requirements))
+                foreach ($this->requirements as $req) 
+                Cond_Researched($this->playerId, $req);
         }
     }
-
-    $TECH_DATA = [
-        new Tech(
-            "Infandry Upgrade 1 (Feudal Upgrades)", 
-            U_MAN_AT_ARMS,
-            [200],  
-            [T_FEUDAL_AGE],
-            [T_MAN_AT_ARMS, T_SCALE_MAIL_ARMOR],
-            U_BARRACKS
-        ),
-        new Tech(
-            "Infandry Upgrade 2 (Castle Upgrades + 1 Barracks)", 
-            U_LONG_SWORDSMAN,
-            [400],  
-            [T_CASTLE_AGE, T_SCALE_MAIL_ARMOR],
-            [T_LONG_SWORDSMAN, T_PIKEMAN, T_EAGLE_WARRIOR, T_SCALE_MAIL_ARMOR],
-            U_BARRACKS
-        ),
-        new Tech(
-            "Infandry Upgrade 3 (Imperial Upgrades + 1 Barracks)", 
-            U_CHAMPION,
-            [800],  
-            [T_IMPERIAL_AGE, T_SCALE_MAIL_ARMOR],
-            [T_CHAMPION, T_TWO_HANDED_SWORDSMAN, T_SCALE_BARDING_ARMOR],
-            U_BARRACKS
-        ),
-        new Tech(
-            "Archer Upgrade 1 (Feudal Upgrades)", 
-            U_ARCHER,
-            [200],  
-            [T_FEUDAL_AGE],
-            [T_FLETCHING, T_LEATHER_ARCHER_ARMOR],
-            U_ARCHERY_RANGE
-        ),
-        new Tech(
-            "Archer Upgrade 2 (Castle Upgrades + 1 Range)", 
-            U_CROSSBOWMAN,
-            [400],  
-            [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR],
-            [T_BODKIN_ARROW, T_PADDED_ARCHER_ARMOR, T_CROSSBOWMAN, T_ELITE_SKIRMISHER],
-            U_ARCHERY_RANGE
-        ),
-        new Tech(
-            "Archer Upgrade 3 (Imperial Upgrades + 1 Range)", 
-            U_ARBALEST,
-            [800],  
-            [T_IMPERIAL_AGE, T_PADDED_ARCHER_ARMOR],
-            [T_CAVALRY_ARCHER_A, T_ARBALEST, T_RING_ARCHER_ARMOR],
-            U_ARCHERY_RANGE
-        ),
-        new Tech(
-            "Cavalry Upgrade 1 (Feudal Upgrades)", 
-            U_SCOUT_CAVALRY,
-            [200],  
-            [T_FEUDAL_AGE],
-            [T_FORGING, T_BLOODLINES, T_SCALE_BARDING_ARMOR ],
-            U_STABLE
-        ),
-        new Tech(
-            "Cavalry Upgrade 2 (Castle Upgrades + 1 Stable)", 
-            U_KNIGHT,
-            [400],  
-            [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR, T_SCALE_BARDING_ARMOR],
-            [T_FORGING,  T_PLATE_BARDING_ARMOR],
-            U_STABLE
-        ),
-        new Tech(
-            "Cavalry Upgrade 3 (Imperial Upgrades + 1 Stable)", 
-            U_PALADIN,
-            [1000],  
-            [T_IMPERIAL_AGE, T_PLATE_MAIL_ARMOR],
-            [T_CAVALIER, T_PALADIN, T_HUSSAR, T_HEAVY_CAMEL, T_PLATE_BARDING_ARMOR],
-            U_STABLE
-        ),
-    ];
 
     Trig(uniqid());
         Efft_RemoveO(1);
@@ -558,6 +520,8 @@ function Scenario($serial) {
     $offsets = [0];
     foreach ($regions as $i => $region) 
         array_push($offsets, $offsets[$i] - $region->depth);
+    $STORE_OFFSET = $offsets[4];
+
     $Y_LENGTH = 40;
     $MAP_OFFSET = 20;
     $corner = new Point(GetMapSize() - $MAP_OFFSET, $MAP_OFFSET);
@@ -569,13 +533,16 @@ function Scenario($serial) {
         SetPlayerMaxPop($playerId, 200);
         SetPlayerStartAge($playerId, "Imperial");
         SetPlayerDisabilitybuildingList($playerId, $GLOBALS['BANNED_BUILDINGS']);
+        $storeOrigin = $origin->offset($STORE_OFFSET);
         $areas = [];
         foreach ($regions as $i => $region) {
             $region->setPlayerId($playerId);
             $region->setOrigin($origin->offset($offsets[$i]));
-            $region->run();
+            $region->placeStoreTriggersAt($storeOrigin);
+            $region->render();
             array_push($areas, $region->getArea());
         }
+
         $topRegion = $regions[0];
         // place walls
         $topA = $regions[0]->createAreaRow(1);
@@ -627,7 +594,7 @@ function Scenario($serial) {
     //     $time = 0;
     //     $round_data_iter = new NeighborIterator(new ArrayIterator($ROUND_DATA));
     //     $i = 0;
-    //     Trig($mode["name"] . " Mode Starter");
+    //     Trig($mode["relicName"] . " Mode Starter");
     //         //Cond_InAreaU(1, 1, $game_buildings[$i], $mode_choice_area);
     //         Efft_Chat(1, $chats[$i]);
     //         //Efft_KillY(1, Y_MILITARY, $mode_select_area);
@@ -637,8 +604,8 @@ function Scenario($serial) {
     //         {
     //             if ($mode != $mode) 
     //             {
-    //         Efft_Deact("Start " . $mode["name"] . " Round 0");
-    //         Efft_Deact($mode["name"] . " Mode Starter");
+    //         Efft_Deact("Start " . $mode["relicName"] . " Round 0");
+    //         Efft_Deact($mode["relicName"] . " Mode Starter");
     //             }
     //         }
 
@@ -770,9 +737,9 @@ function Scenario($serial) {
     //         Efft_TaskO(0, array($center2_X - 1, $center2_Y - 1), array($center2_X, $center2_Y));
     //         Efft_UnloadO(0, array($center2_X, $center2_Y), array($center2_X, $center2_Y));
     //         Efft_Create(0, U_HAY_STACK, array($center2_X - 1, $center2_Y - 1));
-    //     $spawn_trig_names = array();
+    //     $spawn_trig_relicNames = array();
     //     foreach ($unique_spawn_data as $unique_data) {
-    //         array_push($spawn_trig_names, $unique_data[0]);
+    //         array_push($spawn_trig_relicNames, $unique_data[0]);
     //         Trig($unique_data[0], 0, 0);
     //         Efft_Display(60, 0, $unique_data[0]);
     //             foreach($unique_data[2] as $spawn) {
@@ -790,7 +757,7 @@ function Scenario($serial) {
     //                 Efft_Act("Random $count Spawn");
     //             Trig("Random $count Spawn", 0, 0);
     //                 Efft_Chat(1, "trig $count"); 
-    //                 Efft_Act($spawn_trig_names[$count]);
+    //                 Efft_Act($spawn_trig_relicNames[$count]);
     //             $count++;
     //         }
     //     }
