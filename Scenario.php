@@ -21,7 +21,7 @@ function Scenario($serial) {
         }
 
         public function trig($triggerName, $S = 1, $L = 0, $P = 0, $E = 0, $D = '', $R = '') {
-            $relicName = $this->getName($triggerName);
+            $triggerName = $this->getName($triggerName);
             Trig($triggerName, $S, $L, $P, $E, $D, $R);
             return $triggerName;
         }
@@ -110,7 +110,8 @@ function Scenario($serial) {
          * @param int $width - the width of the region
          * @param int $depth
          */
-        function __construct($terrainId, $width, $depth) {
+        function __construct($playerId, $terrainId, $width, $depth) {
+            parent::__construct($playerId);
             $this->terrainId = $terrainId;
             $this->width = $width;
             $this->depth = $depth;
@@ -170,8 +171,9 @@ function Scenario($serial) {
         public $units;
         public $nextTime;
         public $nextUnits;
-        function __construct($playerId, $roundNum, $time, $payment, $units) {
-            parent::__construct($playerId, null, 0, 0);
+
+        function __construct($playerId, $width, $depth,  $roundNum, $time, $payment, $units) {
+            parent::__construct($playerId, TERRAIN_SNOW, $width, $depth);
             $this->roundNum = $roundNum;
             $this->time = $time;
             $this->payment = $payment;
@@ -221,15 +223,60 @@ function Scenario($serial) {
     } 
 
     class EnemySpawnZone extends PlayerRegion {
+
         function render() {
             parent::render();
             $this->killZoneTriggers();
-            $time = 5;
+            $time = 30;
             $waves = array();
-            foreach($GLOBALS['UNITS'] as $i => $unit) {
-                $wave = new EnemyWave($this->playerId, $i + 1, $time, $time, $unit);
-                array_push($waves, $wave);
-                $time += 5;
+            foreach($GLOBALS['UNITS'] as $i => $roundUnits) {
+                if (is_array($roundUnits)) {
+                    $wave =  new EnemyWave(
+                        $this->playerId,
+                        $this->width,
+                        $this->depth,
+                        $i + 1, 
+                        $time, 
+                        75,
+                        $roundUnits
+                    );
+                    $wave->setOrigin($this->getCenter()->offset(-$i));
+                    array_push($waves, $wave);
+                } else {
+                    $eId = $this->getEnemyId();
+                    $pId = $this->playerId;
+                    $this->trig($roundUnits);
+                        Cond_Timer($time);
+                    switch ($roundUnits) {
+                        case "Feudal Upgrade";
+                            Efft_Research($pId, T_FEUDAL_AGE);
+                            // upgrade enemy
+                            foreach ([
+                                T_FEUDAL_AGE, 
+                                T_FLETCHING, 
+                                T_PADDED_ARCHER_ARMOR, 
+                                T_SCALE_MAIL_ARMOR
+                            ] as $r) 
+                                Efft_Research($eId, $r);
+                        break;
+
+                        case "Castle Upgrade":
+                            Efft_Research($pId, T_CASTLE_AGE);
+                            foreach ([
+                                T_CASTLE_AGE
+                            ] as $r) 
+                                Efft_Research($eId, $r);
+                        break;
+                        case "Imperial Upgrade":
+                            Efft_Research($eId, T_IMPERIAL_AGE);
+                            foreach ([
+                                T_IMPERIAL_AGE
+                            ] as $r) 
+                                Efft_Research($eId, $r);
+                        break;
+                    }
+                }
+                $time += 90;
             }
             for ($i = 0; $i < count($waves) - 2; $i++) {
                 $waves[$i]->nextTime = $waves[$i+1]->time;
@@ -237,9 +284,6 @@ function Scenario($serial) {
             }
             foreach($waves as $wave) {
                 $wave->origin = $this->origin;
-                $wave->setWidth($this->width);
-                $wave->setDepth($this->depth);
-                $wave->setPlayerId($this->playerId);
                 $wave->renderWave();
             }
         }
@@ -307,7 +351,10 @@ function Scenario($serial) {
         function render() {
             parent::render();
             $this->trig("Initial Placement");
-                foreach ([U_ARCHERY_RANGE, U_BARRACKS, U_STABLE] as $buildingId)
+                $this->create(U_BARRACKS, $this->getBaseOffsetForObject(U_BARRACKS));
+            $this->trig("Feudal Placement");
+                Cond_Researched($this->playerId, T_FEUDAL_AGE);
+                foreach ([U_ARCHERY_RANGE, U_STABLE] as $buildingId)
                     $this->create($buildingId, $this->getBaseOffsetForObject($buildingId));
         }
 
@@ -316,22 +363,22 @@ function Scenario($serial) {
             switch($buildingId) {
                 case U_STABLE:
                     return $barracksPoint->offset(0, $this->DISTANCE);
-                    break;
                 case U_ARCHERY_RANGE:
-                    return $barracksPoint->offset(0, $this->DISTANCE);
-                    break;
+                    return $barracksPoint->offset(0, -$this->DISTANCE);
                 case U_BARRACKS:
                     return $barracksPoint;
             }
         }
 
         public function placeStoreTriggersAt($storeOrigin) {
-            foreach ($GLOBALS['TECH_DATA'] as $techRaw) {
+            $base = $storeOrigin->offset(-4);
+            foreach ($GLOBALS['TECH_DATA'] as $i => $techRaw) {
                 $tech = new Tech(
                     $techRaw[0],
                     $techRaw[1],
                     $techRaw[2],
                 );
+                $tech->setPlayerId($this->playerId);
                 $tech->setRequirements($techRaw[3]);
                 $buildingId = $techRaw[5];
                 $flag = 0;
@@ -340,17 +387,17 @@ function Scenario($serial) {
                 } else if (in_array($tech->unitId, [U_CHAMPION, U_KNIGHT, U_PALADIN])) {
                     $flag = 2;
                 }
-                // create the object trigger
-                if ($flag) {
-                    $origin = $this->getBaseOffsetForObject($buildingId);
-                    $pt = $origin->offset(-$flag*$this->DISTANCE);
-                    $tech->setTriggerName(
-                        $this->trig(uniqid(), 0)
-                    );
-                        $this->create($buildingId, $pt);
-                }
+
+                $origin = $this->getBaseOffsetForObject($buildingId);
+                $nameUniq = substr(uniqid(), 0, 5);
+                print($tech->relicName . ' ');
+                print($flag . ' ');
+                Trig($i, 0, 1);
+                    $this->create($buildingId, $origin->offset(-$flag*$this->DISTANCE));
                 
-            }
+                $tech->placeAtLocation($base->offset(0, -8 + 2*$i), $i);
+                // place the store tech
+            }   
         }
     }
 
@@ -369,6 +416,8 @@ function Scenario($serial) {
     }
 
     class EcoZone extends PlayerRegion {
+        private $VIL_TRIGGER_NAME = "Create 5 Vils";
+
         private $goldOffset = 10;
 
         function render() {
@@ -379,10 +428,10 @@ function Scenario($serial) {
             $goldArea = AreaSet($goldOffset->asArr());
             $this->trig("Initial Eco Placement");
                 $this->create(U_TOWN_CENTER, $this->getCenter());
+                $this->createInArea(U_SHEEP, $this->getCenter()->offset(3)->areaFromOffset(0, 6));
                 $this->create(U_MINING_CAMP, $goldOffset->offset(-3));
                 $this->create(U_LUMBER_CAMP, $lumberCamp);
                 $this->createInArea(U_OLD_STONE_HEAD, $this->createAreaRow(0), 0);
-                $this->act("Create 5 Vils");
             $this->trig("Gold Placement", 1, 1);
                 $this->createInArea(U_GOLD_MINE, $goldArea, 0);
             $this->trig("Tree Placement", 1, 1);
@@ -392,17 +441,16 @@ function Scenario($serial) {
         public function placeStoreTriggersAt($storeOrigin) {
             $vilSpawnArea = $this->createAreaRow(1, $this->origin->offset(-3), 5);
             $createVilTech = new Tech(
-                "Create 5 Vils",
+                $this->VIL_TRIGGER_NAME,
                 U_VILLAGER_M,
                 [100, 200, 400, 800]
             );
             $createVilTech->setPlayerId($this->playerId);
-            $createVilTech->setTriggerName(
-                $this->trig("Create 5 Vils")
-            );
+            $createVilTech->setTriggerName($this->VIL_TRIGGER_NAME);
+            print($this->VIL_TRIGGER_NAME);
+            Trig($this->VIL_TRIGGER_NAME);
                 $this->createInArea(U_VILLAGER_M, $vilSpawnArea);
-            $createVilTech->placeAtLocation($storeOrigin->offset(-9));
-            $createVilTech->placeAtLocation($storeOrigin->offset(-4));
+            $createVilTech->placeAtLocation($storeOrigin->offset(-9), $this->VIL_TRIGGER_NAME);
         }
     }
 
@@ -435,16 +483,15 @@ function Scenario($serial) {
             $this->triggerName = $triggerName;
         }
 
-
         function getNameIndexString($relicName, $index) {
             return "$relicName $index";
-         }
+        }
 
-        function placeAtLocation($location) {
+        function placeAtLocation($location, $triggerName) {
             // give meaningful relicNames to data array
             // x is offset by 2 on map
             // lan    $Length_Xs are 2
-            $headLocation = $location;
+            $blockLocation = $location;
             $relicLocation = $location->offset(-2);
             $unitLocation = $location->offset(-1);
             $killLocation = $location->offset(1);
@@ -457,29 +504,34 @@ function Scenario($serial) {
                 $this->createGaia(U_RELIC, $relicLocation);
             foreach($this->costs as $i => $cost) {
                 $this->create($this->unitId, $unitLocation);
-                Efft_NameU(0, U_RELIC, "{$this->relicName} ($cost stone)", $headLocation->asArr());
+                Efft_NameO(0, "{$this->relicName} ($cost stone)", $relicLocation->asArr());
+
                 $this->trig($this->getNameIndexString($this->relicName, $i), 0);
                     Cond_Timer(2); // debounce the last purchase
                     Cond_Accumulate($this->playerId, $cost, R_STONE_STORAGE);
                     Cond_InAreaU($this->playerId, 1, $this->unitId, $killLocation->asArr());
                     Efft_KillU($this->playerId, $this->unitId, $killLocation->asArr());
                     Efft_Tribute($this->playerId, $cost, R_STONE_STORAGE, 0);
-                    Efft_Act($this->triggerName);
+                    $this->chat("<YELLOW> Bought {$this->relicName} for {$cost} stone");
+                    Efft_Act($triggerName);
+
                 // place down for another round if it exists
                 if ($i != $size - 1) 
                     $this->act($this->getNameIndexString($this->relicName, $i + 1));
             }
+
             $this->trig(uniqId());
                 /// will place wall over blocked location
                 $this->createInArea($this->WALL_MATERIAL, AreaSet($unitLocation->asArr()), 0);
                 $this->createInArea($this->WALL_MATERIAL, AreaSet($killLocation->asArr()), 0);
                 Efft_RemoveO(0, $killLocation->asArr());
             
-            $this->trig("Block Kill Trigger {$this->relicName}");
-                Efft_RemoveU(0, U_OLD_STONE_HEAD, $headLocation->asArr());
+            $this->trig(uniqid());
                 if (is_array($this->requirements))
-                foreach ($this->requirements as $req) 
-                Cond_Researched($this->playerId, $req);
+                    foreach ($this->requirements as $req) 
+                        Cond_Researched($this->playerId, $req);
+                Efft_Removeo(0, $blockLocation->asArr());
+                
         }
     }
 
@@ -509,13 +561,13 @@ function Scenario($serial) {
     SetAllTech(true);
     // terrain, width, height
     $regions = [
-        new EnemySpawnZone(TERRAIN_SNOW, 31, 15),
-        new PlayerRegion(TERRAIN_ROAD_FUNGUS, 31, 30),
-        new TowerZone(TERRAIN_ROAD_BROKEN, 21, 21),
-        new CombatBuildingZone(TERRAIN_ROAD, 21, 21),
-        new StoreZone(TERRAIN_ROAD_BROKEN, 35, 12),
-        new EcoZone(TERRAIN_GRASS_2, 30, 25),
-        new HouseZone(TERRAIN_ROAD_BROKEN, 38, 4),
+        new EnemySpawnZone(0, TERRAIN_SNOW, 31, 15),
+        new PlayerRegion(0, TERRAIN_ROAD_FUNGUS, 31, 30),
+        new TowerZone(0, TERRAIN_ROAD_BROKEN, 21, 21),
+        new CombatBuildingZone(0, TERRAIN_ROAD, 21, 21),
+        new StoreZone(0, TERRAIN_ROAD_BROKEN, 35, 12),
+        new EcoZone(0, TERRAIN_GRASS_2, 30, 25),
+        new HouseZone(0, TERRAIN_ROAD_BROKEN, 38, 4),
     ];
     $offsets = [0];
     foreach ($regions as $i => $region) 
@@ -531,7 +583,7 @@ function Scenario($serial) {
     SetPlayersCount(2*count($PLAYERS));
     foreach ($PLAYERS as $i => $playerId) {
         SetPlayerMaxPop($playerId, 200);
-        SetPlayerStartAge($playerId, "Imperial");
+        SetPlayerStartAge($playerId, "Dark");
         SetPlayerDisabilitybuildingList($playerId, $GLOBALS['BANNED_BUILDINGS']);
         $storeOrigin = $origin->offset($STORE_OFFSET);
         $areas = [];
