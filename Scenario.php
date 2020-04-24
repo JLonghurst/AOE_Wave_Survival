@@ -394,6 +394,9 @@ function Scenario($serial) {
                 print($flag . ' ');
                 Trig($i, 0, 1);
                     $this->create($buildingId, $origin->offset(-$flag*$this->DISTANCE));
+                    foreach ((array)$techRaw[4] as $t)
+                        Efft_Research($this->playerId, $t);
+                
                 
                 $tech->placeAtLocation($base->offset(0, -8 + 2*$i), $i);
                 // place the store tech
