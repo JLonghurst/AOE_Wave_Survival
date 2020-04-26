@@ -77,6 +77,10 @@ function Scenario($serial) {
             return array($this->x, $this->y);
         }
 
+        public static function fromArr($arr) {
+            return new Point($arr[0], $arr[1]);
+        }
+
         /**
          * Returns the area created by the bounding box
          * of the two points
@@ -335,22 +339,21 @@ function Scenario($serial) {
             $this->trig("Game Over", 0);
                 Cond_Timer(6);
                 Efft_DeclareVictory($this->getEnemyId());
-            $this->trig("Tower Health Regain", 1, 1);
-                Cond_Timer(1);
-                Efft_DamageY($this->playerId, -1, Y_BUILDING, $this->getCenter()->asArr());
+
         }
 
         private function setTowerElevation() {
             for ($i = 1; $i < $this->TOWER_HILL_OFFSET; $i++)
-                foreach (AreaPts(
-                    AreaSet($this->getCenter()->asArr(), $this->TOWER_HILL_OFFSET + 2 - $i)
-                ) as $p)
+                foreach (AreaPts(AreaSet(
+                    $this->getCenter()->asArr(), 
+                    $this->TOWER_HILL_OFFSET + 2 - $i
+                )) as $p)
                     setElevation($p, $i);
         }
 
         private function towerExplosionTrigger($triggerName) {
-            Trig($triggerName);
-            for ($i = 1; $i < $this->TOWER_HILL_OFFSET; $i++)
+            Trig($triggerName, 0);
+            for ($i = 1; $i < $this->TOWER_HILL_OFFSET - 1; $i++)
                 foreach (AreaPts(AreaSet($this->getCenter()->asArr(), $i)) as $p) {
                     Efft_KillO($this->getEnemyId(), $p);
                     Efft_ChangeView(1, $this->getCenter()->asArr());
@@ -361,7 +364,7 @@ function Scenario($serial) {
         }
 
         public function placeStoreTriggersAt($storeOrigin) {
-            $towerDestroyTrigger = 'Tower Explosion';
+            $towerDestroyTrigger = $this->getName("Tower Explosion");
             $towerDestroyTech = new Tech(
                 $towerDestroyTrigger,
                 U_PETARD,
@@ -371,8 +374,74 @@ function Scenario($serial) {
             $towerDestroyTech->setTriggerName($towerDestroyTrigger);
             $this->towerExplosionTrigger($towerDestroyTrigger);
             $towerDestroyTech->placeAtLocation($storeOrigin->offset(-9, 4), $towerDestroyTrigger);
+
+            $createCastleName = $this->getName("Castle Creation");
+            $castleTech = new Tech(
+                $createCastleName,
+                U_PETARD,
+                [500]
+            );
+            $castlePoint = $this->origin->offset(0, $this->width / 2);
+            Trig($createCastleName, 0);
+                // remove stone heads
+                Efft_RemoveO(0, $castlePoint->areaFromOffset(-4, -4));
+                // place castle
+                $this->create(U_CASTLE, $castlePoint->offset(-2, -1));
+            $castleTech->setPlayerId($this->playerId);
+            $castleTech->setTriggerName($createCastleName);
+            $castleTech->placeAtLocation($storeOrigin->offset(-9, 7), $createCastleName);
+            $this->updateTriggers($storeOrigin);
         }
 
+        public function updateTriggers($storeOrigin) {
+            $towerLocation = $this->getCenter()->asArr();
+            $addHealth = $this->getName("Add 1000 Health");
+            $towerUpgrade1 = $this->getName("Tower Upgrade 1");
+            $towerUpgrade2 = $this->getName("Tower Upgrade 2");
+            $towerUpgrade3 = $this->getName("Tower Upgrade 3");
+            $regain = $this->regainTrigger(1, 1);
+            $regain4 = $this->regainTrigger(4);
+            $regain10 = $this->regainTrigger(10);
+            $regain15 = $this->regainTrigger(15);
+
+            Trig($addHealth, 0, 0);
+                Efft_HPY(1, 1000, Y_BUILDING, $towerLocation);
+            Trig($towerUpgrade1, 0, 0);
+                Efft_Deact($regain);
+                Efft_Act($regain4);
+                Efft_Research(1, T_MURDER_HOLES);
+                Efft_RangeY(1, 2, Y_BUILDING, $towerLocation);
+                Efft_APY(1, 5, Y_BUILDING, $towerLocation);
+            Trig($towerUpgrade2, 0, 0);   
+                Efft_Deact($regain4);
+                Efft_Act($regain10);
+                Efft_RangeY(1, 5, Y_BUILDING, $towerLocation);
+                Efft_APY(1, 5, Y_BUILDING, $towerLocation); 
+            Trig($towerUpgrade3, 0, 0);   
+                Efft_Deact($regain10);
+                Efft_Act($regain15);
+                Efft_RangeY(1, 5, Y_BUILDING, $towerLocation);
+                Efft_APY(1, 5, Y_BUILDING, $towerLocation);
+
+            $techs = [
+                new Tech($addHealth, U_ARBALEST, [100, 200, 300, 400, 500]),
+                new Tech($towerUpgrade1, U_ARBALEST, [200]),
+                new Tech($towerUpgrade2, U_ARBALEST, [400]),
+                new Tech($towerUpgrade3, U_ARBALEST, [800]),
+            ];
+            foreach($techs as $i => $t) {
+                $t->setPlayerId($this->playerId);
+                $t->placeAtLocation($storeOrigin->offset(-9, -2 - 2*$i), $t->relicName);
+            }
+        }
+
+        private function regainTrigger($ammount, $startState = 0) {
+            $name = $this->getName("Tower Health Regain x$ammount");
+            Trig($name, $startState, 1);
+                Cond_Timer(1);
+                Efft_DamageY($this->playerId, -$ammount, Y_BUILDING, $this->getCenter()->asArr());
+            return $name;
+        }
     }
 
     class CombatBuildingZone extends PlayerRegion {
@@ -474,9 +543,9 @@ function Scenario($serial) {
             );
             $createVilTech->setPlayerId($this->playerId);
             $createVilTech->setTriggerName($this->VIL_TRIGGER_NAME);
-            print($this->VIL_TRIGGER_NAME);
             Trig($this->VIL_TRIGGER_NAME);
-                $this->createInArea(U_VILLAGER_M, $vilSpawnArea);
+                foreach (AreaPts($vilSpawnArea) as $i => $p)
+                    $this->create(($i % 2 == 0) ? U_VILLAGER_F : U_VILLAGER_M, Point::fromArr($p));
             $createVilTech->placeAtLocation($storeOrigin->offset(-9), $this->VIL_TRIGGER_NAME);
         }
     }
@@ -632,16 +701,12 @@ function Scenario($serial) {
             wallAreas($areas);
         $origin = $origin->offset(0, $Y_LENGTH);
     }
-    //$lastRound = null;
-
-    
     // Trig("Intro Prompt", 1, 0);
     //     //Efft_Research(1, T_TOWN_WATCH);
     //     Efft_ChangeView(1, array(37, 27));
     //     Efft_Display(25, 0, "Welcome to AOE2 Wave Survival. The Game will begin at 00:30, prepare for carnage");        
     //     Efft_Display(25, 1, "You have until 00:25 to choose your difficulty level before the default of Hero mode is selected");      
     //     Efft_Display(25, 2, "Task an infandry building in between the flags to select your difficulty level");
-    
     // place global map revealers
     Trig('Map Revealers');
     foreach (AreaPts(Area(0, 0, GetMapSize(), GetMapSize())) as $p) {
@@ -652,11 +717,6 @@ function Scenario($serial) {
         Efft_Create(1, U_MAP_REVEALER, array($i, $j));
         } 
     }
-
-
-   
-   
-   
     // $chats = [
     //     "<GREEN> Noob mode selected. Very cute. We all start somewhere :)",
     //     "<GREEN> Easy Mode selected. Maybe one day you will be worth somethings",
@@ -689,62 +749,6 @@ function Scenario($serial) {
     //         }
 
     // }
-
-
-    
-
-
-    // function storeTriggers() {
-    //     global $tower_location;
-    //     Trig("Vil Spawn 5", 0, 0);
-    //     //Efft_ChangeView(1, array(37, 12));
-    //     $i = 0;
-    //     foreach(Spawn_Box(array(38, 27), array(42, 27)) as $spawn) {
-    //         ($i % 2 == 0) ? $building =  U_VILLAGER_M : $building =  U_VILLAGER_F;
-    //         Efft_Create(1, $building, $spawn);
-    //         $i++;
-    //     }         
-
-    //     Trig("Castle Creation", 0, 0);
-    //         // remove stone heads
-    //         Efft_RemoveO(0, [array(9, 0), array(12, 3)]);
-    //         // place castle
-    //         Efft_Create(1, U_CASTLE, array(11, 2));
-            
-    //     Trig("Tower Upgrade 1", 0, 0);
-    //         Efft_Deact("Tower Health Regain");
-    //         Efft_Act("Tower Health Regain x4");
-    //         Efft_Research(1, T_MURDER_HOLES);
-    //         Efft_RangeY(1, 2, Y_BUILDING, $tower_location);
-    //         Efft_APY(1, 5, Y_BUILDING, $tower_location);
-           
-    //     Trig("Tower Upgrade 2", 0, 0);   
-    //         Efft_Deact("Tower Health Regain x4");
-    //         Efft_Act("Tower Health Regain x10");
-    //         Efft_RangeY(1, 5, Y_BUILDING, $tower_location);
-    //         Efft_APY(1, 5, Y_BUILDING, $tower_location); 
-       
-    //     Trig("Tower Upgrade 3", 0, 0);   
-    //         Efft_Deact("Tower Health Regain x4");
-    //         Efft_Act("Tower Health Regain x10");
-    //         Efft_RangeY(1, 5, Y_BUILDING, $tower_location);
-    //         Efft_APY(1, 5, Y_BUILDING, $tower_location);   
-
-    //     Trig("Tower Health Regain x4", 0, 1);
-    //         Cond_Timer(1);
-    //         Efft_DamageY(1, -4, Y_BUILDING, $tower_location); 
-            
-    //     Trig("Tower Health Regain x10", 0, 1);
-    //         Cond_Timer(1);
-    //         Efft_DamageY(1, -10, Y_BUILDING, $tower_location);  
-            
-    //     Trig("Add 1000 Health", 0, 0);
-    //         Efft_HPY(1, 1000, Y_BUILDING, $tower_location);
-    // }
-    // storeTriggers();
-
-    // Hay Stack Effect Triggers
-
     // Trig("Default Mode Starter", 1, 0);
     //     Cond_Timer(25);
     //     Efft_Display(10, 0, 
@@ -759,9 +763,6 @@ function Scenario($serial) {
     //     Efft_Chat(1, "$mode started");
     //     Efft_Act("$mode Round 0");
     //     Efft_Act("$mode Start Game");
-        
-
-
     // // final round
     // Trig("$mode Round 40", 0, 0);
     //     Efft_Act("Round 40 Spawn");
