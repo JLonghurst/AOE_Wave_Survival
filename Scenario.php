@@ -598,6 +598,7 @@ function Scenario($serial) {
             Trig(uniqid(), 1, 0);
                 $this->act($this->getNameIndexString($this->relicName, 0));
                 $this->createGaia(U_RELIC, $relicLocation);
+                $this->createGaia(U_HAY_STACK, $blockLocation);
             foreach($this->costs as $i => $cost) {
                 $this->create($this->unitId, $unitLocation);
                 Efft_NameO(0, "{$this->relicName} ($cost stone)", $relicLocation->asArr());
@@ -615,7 +616,6 @@ function Scenario($serial) {
                 if ($i != $size - 1) 
                     $this->act($this->getNameIndexString($this->relicName, $i + 1));
             }
-
             $this->trig(uniqId());
                 /// will place wall over blocked location
                 $this->createInArea($this->WALL_MATERIAL, AreaSet($unitLocation->asArr()), 0);
@@ -701,12 +701,6 @@ function Scenario($serial) {
             wallAreas($areas);
         $origin = $origin->offset(0, $Y_LENGTH);
     }
-    // Trig("Intro Prompt", 1, 0);
-    //     //Efft_Research(1, T_TOWN_WATCH);
-    //     Efft_ChangeView(1, array(37, 27));
-    //     Efft_Display(25, 0, "Welcome to AOE2 Wave Survival. The Game will begin at 00:30, prepare for carnage");        
-    //     Efft_Display(25, 1, "You have until 00:25 to choose your difficulty level before the default of Hero mode is selected");      
-    //     Efft_Display(25, 2, "Task an infandry building in between the flags to select your difficulty level");
     // place global map revealers
     Trig('Map Revealers');
     foreach (AreaPts(Area(0, 0, GetMapSize(), GetMapSize())) as $p) {
@@ -717,6 +711,12 @@ function Scenario($serial) {
         Efft_Create(1, U_MAP_REVEALER, array($i, $j));
         } 
     }
+    // Trig("Intro Prompt", 1, 0);
+    //     //Efft_Research(1, T_TOWN_WATCH);
+    //     Efft_ChangeView(1, array(37, 27));
+    //     Efft_Display(25, 0, "Welcome to AOE2 Wave Survival. The Game will begin at 00:30, prepare for carnage");        
+    //     Efft_Display(25, 1, "You have until 00:25 to choose your difficulty level before the default of Hero mode is selected");      
+    //     Efft_Display(25, 2, "Task an infandry building in between the flags to select your difficulty level");
     // $chats = [
     //     "<GREEN> Noob mode selected. Very cute. We all start somewhere :)",
     //     "<GREEN> Easy Mode selected. Maybe one day you will be worth somethings",
@@ -726,8 +726,6 @@ function Scenario($serial) {
     // $mode_choice_area = [array(37, 27), array(43, 27)];
     // $mode_select_area = [array(36, 22), array(44, 27)];
     // $mode_select_area_o = [array(36, 22), array(44, 26)];
-
-
     // foreach($game_modes as $mode) {
     //     //$time = 30; // current game time (30 for time to select game mode)
     //     $time = 0;
@@ -747,7 +745,6 @@ function Scenario($serial) {
     //         Efft_Deact($mode["relicName"] . " Mode Starter");
     //             }
     //         }
-
     // }
     // Trig("Default Mode Starter", 1, 0);
     //     Cond_Timer(25);
@@ -769,7 +766,6 @@ function Scenario($serial) {
     //     Efft_Give(1, $round["money"], STONE);
     //     Efft_Display(100, 3, "Round 40 final round");
     //     Efft_Act("Endless Starter");
-
     // Trig("Endless Starter", 0, 0);
     //     Cond_NotInAreaY(2, 1, Y_MILITARY, [array(0, 0), array(17, 90)]);
     //     Efft_Display(60, 0, "You have survived all 40 rounds! congrats");
@@ -777,7 +773,6 @@ function Scenario($serial) {
     //     Efft_Display(1000, 2, "Random sets of unique buildings will spawn until you die");
     //     Efft_Act("Initiate1");
     //     Efft_Act("Initiate2");
-
     // function End_Game_Sandbox() {
     //     $unique_spawn_data = $GLOBALS["unique_spawn_data"];
 
