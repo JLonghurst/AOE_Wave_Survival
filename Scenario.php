@@ -303,6 +303,8 @@ function Scenario($serial) {
     }
 
     class TowerZone extends PlayerRegion {
+        private $TOWER_HILL_OFFSET = 5;
+
         function render() {
             parent::render();
             $this->setTowerElevation();
@@ -339,11 +341,38 @@ function Scenario($serial) {
         }
 
         private function setTowerElevation() {
-            $e = 5;
-            for ($i = 1; $i < $e; $i++)
-                foreach (AreaPts(AreaSet($this->getCenter()->asArr(), $e + 2 - $i)) as $p) 
+            for ($i = 1; $i < $this->TOWER_HILL_OFFSET; $i++)
+                foreach (AreaPts(
+                    AreaSet($this->getCenter()->asArr(), $this->TOWER_HILL_OFFSET + 2 - $i)
+                ) as $p)
                     setElevation($p, $i);
         }
+
+        private function towerExplosionTrigger($triggerName) {
+            Trig($triggerName);
+            for ($i = 1; $i < $this->TOWER_HILL_OFFSET; $i++)
+                foreach (AreaPts(AreaSet($this->getCenter()->asArr(), $i)) as $p) {
+                    Efft_KillO($this->getEnemyId(), $p);
+                    Efft_ChangeView(1, $this->getCenter()->asArr());
+                    // explosion animation
+                    Efft_Create(0, U_MACAW, $p);
+                    Efft_KillU(0, U_MACAW, $p);
+                }
+        }
+
+        public function placeStoreTriggersAt($storeOrigin) {
+            $towerDestroyTrigger = 'Tower Explosion';
+            $towerDestroyTech = new Tech(
+                $towerDestroyTrigger,
+                U_PETARD,
+                [100, 400, 800]
+            );
+            $towerDestroyTech->setPlayerId($this->playerId);
+            $towerDestroyTech->setTriggerName($towerDestroyTrigger);
+            $this->towerExplosionTrigger($towerDestroyTrigger);
+            $towerDestroyTech->placeAtLocation($storeOrigin->offset(-9, 4), $towerDestroyTrigger);
+        }
+
     }
 
     class CombatBuildingZone extends PlayerRegion {
@@ -560,7 +589,7 @@ function Scenario($serial) {
     // terrain, width, height
     $regions = [
         new EnemySpawnZone(0, TERRAIN_SNOW, 31, 15),
-        new PlayerRegion(0, TERRAIN_ROAD_FUNGUS, 31, 30),
+        new PlayerRegion(0, TERRAIN_ROAD_FUNGUS, 31, 15),
         new TowerZone(0, TERRAIN_ROAD_BROKEN, 21, 21),
         new CombatBuildingZone(0, TERRAIN_ROAD, 21, 21),
         new StoreZone(0, TERRAIN_ROAD_BROKEN, 35, 12),
@@ -675,15 +704,7 @@ function Scenario($serial) {
     //         Efft_Create(1, $building, $spawn);
     //         $i++;
     //     }         
-        
-    //     Trig("Bomb Area", 0, 0);
-    //         Efft_KillO(2, [array(6, 7), array(10, 11)]);
-    //         Efft_ChangeView(1, $tower_location);
-    //         foreach (Spawn_Box(array(6, 7), array(10, 11)) as $spawn) {
-    //             Efft_Create(0,U_MACAW, $spawn);
-    //             Efft_KillU(0,U_MACAW, $spawn);
-    //         }
-            
+
     //     Trig("Castle Creation", 0, 0);
     //         // remove stone heads
     //         Efft_RemoveO(0, [array(9, 0), array(12, 3)]);
