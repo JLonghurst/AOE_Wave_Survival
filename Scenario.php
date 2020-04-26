@@ -311,12 +311,15 @@ function Scenario($serial) {
 
         function render() {
             parent::render();
-            $this->setTowerElevation();
+            $tcLoc = $this->getCenter()->offset(0, 9);
 
+            $this->setTowerElevation();
+            $this->trig("Enemy Town Center Invincible", 1, 1);
+                Cond_Timer(1);
+                Efft_HPY($this->getEnemyId(), 1000, Y_BUILDING, $tcLoc->asArr());
             $this->trig("Enemy Town Center");
                 Efft_RemoveO($this->getEnemyId());
-                $this->create(U_TOWN_CENTER, $this->getCenter()->offset(0, 9), $this->getEnemyId());
-                Efft_InvincibleU($this->getEnemyId(), U_TOWN_CENTER);
+                $this->create(U_TOWN_CENTER, $tcLoc, $this->getEnemyId());
             $this->trig("Tower Placement", 1, 0);
                 $this->create(U_WATCH_TOWER, $this->getCenter());
                 $this->act("Tower Death");
@@ -424,9 +427,9 @@ function Scenario($serial) {
                 Efft_APY(1, 5, Y_BUILDING, $towerLocation);
 
             $techs = [
-                new Tech($addHealth, U_ARBALEST, [100, 200, 300, 400, 500]),
-                new Tech($towerUpgrade1, U_ARBALEST, [200]),
-                new Tech($towerUpgrade2, U_ARBALEST, [400]),
+                new Tech($addHealth, U_MONK, [100, 200, 300, 400, 500]),
+                new Tech($towerUpgrade1, U_SKIRMISHER, [200]),
+                new Tech($towerUpgrade2, U_ELITE_SKIRMISHER, [400]),
                 new Tech($towerUpgrade3, U_ARBALEST, [800]),
             ];
             foreach($techs as $i => $t) {
