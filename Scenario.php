@@ -227,61 +227,56 @@ function Scenario($serial) {
     } 
 
     class EnemySpawnZone extends PlayerRegion {
-
         function render() {
             parent::render();
             $this->killZoneTriggers();
             $time = 30;
             $waves = array();
+
             foreach($GLOBALS['UNITS'] as $i => $roundUnits) {
                 if (is_array($roundUnits)) {
-                    $wave =  new EnemyWave(
-                        $this->playerId,
-                        $this->width,
-                        $this->depth,
-                        $i + 1, 
-                        $time, 
-                        75,
-                        $roundUnits
-                    );
-                    $wave->setOrigin($this->getCenter()->offset(-$i));
-                    array_push($waves, $wave);
+                    $time += $roundUnits[0];
+                    array_push($waves, new EnemyWave(
+                        $this->playerId, $this->width, $this->depth,
+                        $i + 1, $time, 75, $roundUnits[1]
+                    ));
                 } else {
+                    // age up break time
+                    $time += 90;
                     $eId = $this->getEnemyId();
                     $pId = $this->playerId;
+                    $age = null;
                     $this->trig($roundUnits);
-                        Cond_Timer($time);
+                    Cond_Timer($time);
                     switch ($roundUnits) {
-                        case "Feudal Upgrade";
-                            Efft_Research($pId, T_FEUDAL_AGE);
-                            // upgrade enemy
+                        case "Feudal Upgrade":
+                            $age = T_FEUDAL_AGE;
+                            // upgrade enemy units
                             foreach ([
-                                T_FEUDAL_AGE, 
-                                T_FLETCHING, 
-                                T_PADDED_ARCHER_ARMOR, 
+                                $age,
+                                T_FLETCHING,
+                                T_PADDED_ARCHER_ARMOR,
                                 T_SCALE_MAIL_ARMOR
-                            ] as $r) 
-                                Efft_Research($eId, $r);
+                            ] as $r) Efft_Research($eId, $r);
                         break;
-
                         case "Castle Upgrade":
-                            Efft_Research($pId, T_CASTLE_AGE);
+                            $age = T_CASTLE_AGE;
                             foreach ([
-                                T_CASTLE_AGE
-                            ] as $r) 
-                                Efft_Research($eId, $r);
+                                $age,
+                            ] as $r) Efft_Research($eId, $r);
                         break;
                         case "Imperial Upgrade":
-                            Efft_Research($eId, T_IMPERIAL_AGE);
+                            $age = T_IMPERIAL_AGE;
                             foreach ([
-                                T_IMPERIAL_AGE
-                            ] as $r) 
-                                Efft_Research($eId, $r);
+                                $age,
+                            ] as $r) Efft_Research($eId, $r);
                         break;
                     }
+                    Efft_Research($pId, $age);
                 }
-                $time += 90;
             }
+            foreach($waves as $i => $wave)
+                $wave->setOrigin($this->origin->offset(-$i));
             for ($i = 0; $i < count($waves) - 2; $i++) {
                 $waves[$i]->nextTime = $waves[$i+1]->time;
                 $waves[$i]->nextUnits = $waves[$i+1]->units;
@@ -293,15 +288,16 @@ function Scenario($serial) {
         }
 
         private function killZoneTriggers() {
+            $a = $this->getArea();
             // Creates Kill Zone in the area where enemyId buildings spawn
             $this->trig("Kill Zone", 1, 1);
-            Cond_InAreaY($this->playerId, Y_MILITARY, 1, $this->getArea());
+            Cond_InAreaY($this->playerId, Y_MILITARY, 1, $a);
             $this->chat("<RED> No player units are not allowed in the enemyId spawning area");
-            Efft_KillY($this->playerId, Y_MILITARY, $this->getArea());
+            Efft_KillY($this->playerId, Y_MILITARY, $a);
             if ($GLOBALS['DEBUG']) {
                 $this->trig("Kill Zone Enemy", 1, 1);
-                    Cond_InAreaY($this->playerId, 1, Y_MILITARY, $this->getArea());
-                    Efft_KillY($this->playerId, Y_MILITARY, $this->getArea());
+                    Cond_InAreaY($this->playerId, 1, Y_MILITARY, $a);
+                    Efft_KillY($this->playerId, Y_MILITARY, $a);
             }
         }
     }
@@ -315,8 +311,8 @@ function Scenario($serial) {
 
             $this->setTowerElevation();
             $this->trig("Enemy Town Center Invincible", 1, 1);
-                Cond_Timer(1);
-                Efft_HPY($this->getEnemyId(), 1000, Y_BUILDING, $tcLoc->asArr());
+                Cond_Timer(2);
+                Efft_HPY($this->getEnemyId(), 3, Y_BUILDING, $tcLoc->asArr());
             $this->trig("Enemy Town Center");
                 Efft_RemoveO($this->getEnemyId());
                 $this->create(U_TOWN_CENTER, $tcLoc, $this->getEnemyId());
@@ -495,7 +491,6 @@ function Scenario($serial) {
                     foreach ((array)$techRaw[4] as $t)
                         Efft_Research($this->playerId, $t);
                 $tech->placeAtLocation($base->offset(0, -8 + 2*$i), $nameUniq);
-                // place the store tech
             }   
         }
     }
@@ -541,7 +536,7 @@ function Scenario($serial) {
             $vilSpawnArea = $this->createAreaRow(1, $this->origin->offset(-3), 5);
             $createVilTech = new Tech(
                 $this->VIL_TRIGGER_NAME,
-                U_VILLAGER_M,
+                U_SHEEP,
                 [100, 200, 400, 800]
             );
             $createVilTech->setPlayerId($this->playerId);
@@ -598,7 +593,7 @@ function Scenario($serial) {
             $size = count($this->costs);
 
             // one time event
-            Trig(uniqid(), 1, 0);
+            Trig(uniqid());
                 $this->act($this->getNameIndexString($this->relicName, 0));
                 $this->createGaia(U_RELIC, $relicLocation);
                 $this->createGaia(U_HAY_STACK, $blockLocation);
@@ -619,17 +614,17 @@ function Scenario($serial) {
                 if ($i != $size - 1) 
                     $this->act($this->getNameIndexString($this->relicName, $i + 1));
             }
-            $this->trig(uniqId());
+            Trig(uniqId());
                 /// will place wall over blocked location
                 $this->createInArea($this->WALL_MATERIAL, AreaSet($unitLocation->asArr()), 0);
                 $this->createInArea($this->WALL_MATERIAL, AreaSet($killLocation->asArr()), 0);
                 Efft_RemoveO(0, $killLocation->asArr());
             
-            $this->trig(uniqid());
+            Trig(uniqid());
                 if (is_array($this->requirements))
                     foreach ($this->requirements as $req) 
                         Cond_Researched($this->playerId, $req);
-                Efft_Removeo(0, $blockLocation->asArr());
+                Efft_RemoveO(0, $blockLocation->asArr());
                 
         }
     }

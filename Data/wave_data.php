@@ -79,58 +79,58 @@
     // // big spawn
     // $spawnsB_5 = Spawn_Box(array(7, $SPAWN_CENTER_X+13), array(11, $SPAWN_CENTER_X+13));
     $UNITS = array(
-        array([U_MILITIA, 1]),
-        array([U_MILITIA, 3]),
-        array([U_MILITIA, 5], [U_BATTERING_RAM, 3]),
+        [30, array([U_MILITIA, 1])],
+        [60, array([U_MILITIA, 3])],
+        [60, array([U_MILITIA, 5], [U_BATTERING_RAM, 3])],
 
         // FEUDAL 
 
         "Feudal Upgrade",
 
-        array([U_ARCHER, 5]),
-        array([U_SCOUT_CAVALRY, 5]),
-        array([U_SCOUT_CAVALRY, 5], [U_ARCHER, 5]),
-        array([U_MAN_AT_ARMS, 9]),
-        array([U_SKIRMISHER, 9], [U_ARCHER, 9]),
-        array([U_MAN_AT_ARMS, 9], [U_SCOUT_CAVALRY, 9]),
-        array([U_KNIGHT, 5]),
+        [60, array([U_ARCHER, 5])],
+        [60, array([U_SCOUT_CAVALRY, 5])],
+        [60, array([U_SCOUT_CAVALRY, 5], [U_ARCHER, 5])],
+        [60, array([U_MAN_AT_ARMS, 9])],
+        [60, array([U_SKIRMISHER, 9], [U_ARCHER, 9])],
+        [60, array([U_MAN_AT_ARMS, 9], [U_SCOUT_CAVALRY, 9])],
+        [60, array([U_KNIGHT, 5])],
  
         //CASTLE
         "Castle Upgrade",
 
-        array([U_CROSSBOWMAN, 20]),
-        array([U_KNIGHT, 15]),
-        array([U_EAGLE_SCOUT, 10], [U_EAGLE_SCOUT, 10]),
-        array([U_MANGONEL, 10]),
-        array([U_BATTERING_RAM, 5], [U_LONG_SWORDSMAN, 20]),
-        array([U_CAMEL, 10], [U_ELITE_SKIRMISHER, 20]),
-        array([U_KNIGHT, 15]),
-        array([U_EAGLE_SCOUT, 10], [U_PIKEMAN, 10]),
-        array([U_MANGONEL, 10]),
-        array([U_KNIGHT, 15], [U_LIGHT_CAVALRY, 15]),
-        array([U_SCORPION, 30], [U_BATTERING_RAM, 5]),
-        array([U_PIKEMAN, 25]),
-        array([U_EAGLE_SCOUT, 20]),
-        array([U_CAVALRY_ARCHER, 20], [U_CROSSBOWMAN, 10]),
-        array([U_WAR_ELEPHANT, 20], [U_LONGBOWMAN, 20]),
+        [60, array([U_CROSSBOWMAN, 20])],
+        [60, array([U_KNIGHT, 15])],
+        [60, array([U_EAGLE_SCOUT, 10], [U_EAGLE_SCOUT, 10])],
+        [60, array([U_MANGONEL, 10])],
+        [60, array([U_BATTERING_RAM, 5], [U_LONG_SWORDSMAN, 20])],
+        [60, array([U_CAMEL, 10], [U_ELITE_SKIRMISHER, 20])],
+        [60, array([U_KNIGHT, 15])],
+        [60, array([U_EAGLE_SCOUT, 10], [U_PIKEMAN, 10])],
+        [60, array([U_MANGONEL, 10])],
+        [60, array([U_KNIGHT, 15], [U_LIGHT_CAVALRY, 15])],
+        [60, array([U_SCORPION, 30], [U_BATTERING_RAM, 5])],
+        [60, array([U_PIKEMAN, 25])],
+        [60, array([U_EAGLE_SCOUT, 20])],
+        [60, array([U_CAVALRY_ARCHER, 20], [U_CROSSBOWMAN, 10])],
+        [60, array([U_WAR_ELEPHANT, 20], [U_LONGBOWMAN, 20])],
         
         // IMPERIAL
 
         "Imperial Upgrade",
 
-        array([U_HUSSAR, 30], [U_TREBUCHET_P, 5]),
-        array([U_CAVALIER, 60]),
-        array([U_TWO_HANDED_SWORDSMAN, 60]),
-        array([U_HAND_CANNONEER, 60], [U_BOMBARD_CANNON, 20]),
-        array([U_HEAVY_CAMEL, 20], [U_PALADIN, 60]),
-        array([U_HALBERDIER, 60]),
-        array([U_ONAGER, 20], [U_HEAVY_SCORPION, 20]),
-        array([U_HEAVY_CAVALRY_ARCHER, 60], [U_SIEGE_RAM, 20]),
-        array([U_CHAMPION, 30], [U_ELITE_EAGLE_WARRIOR, 60]),
-        array([U_PALADIN, 60]),
-        array([U_PETARD, 100]),
-        array([U_HALBERDIER, 30], [U_HUSSAR, 30], [U_ELITE_SKIRMISHER, 30]),
-        array([U_PALADIN, 30], [U_CHAMPION, 30], [U_PALADIN, 30]),
+        [60, array([U_HUSSAR, 30], [U_TREBUCHET_P, 5])],
+        [60, array([U_CAVALIER, 60])],
+        [60, array([U_TWO_HANDED_SWORDSMAN, 60])],
+        [60, array([U_HAND_CANNONEER, 60], [U_BOMBARD_CANNON, 20])],
+        [60, array([U_HEAVY_CAMEL, 20], [U_PALADIN, 60])],
+        [60, array([U_HALBERDIER, 60])],
+        [60, array([U_ONAGER, 20], [U_HEAVY_SCORPION, 20])],
+        [60, array([U_HEAVY_CAVALRY_ARCHER, 60], [U_SIEGE_RAM, 20])],
+        [60, array([U_CHAMPION, 30], [U_ELITE_EAGLE_WARRIOR, 60])],
+        [60, array([U_PALADIN, 60])],
+        [60, array([U_PETARD, 100])],
+        [60, array([U_HALBERDIER, 30], [U_HUSSAR, 30], [U_ELITE_SKIRMISHER, 30])],
+        [60, array([U_PALADIN, 30], [U_CHAMPION, 30], [U_PALADIN, 30])],
     );
     //print(count($UNITS));
     $BANNED_BUILDINGS = [U_VILLAGER_F, U_VILLAGER_M, U_BLACKSMITH, U_MARKET, U_UNIVERSITY, U_MONASTERY, U_WATCH_TOWER, U_HOUSE];
@@ -177,54 +177,54 @@
             [T_CHAMPION, T_TWO_HANDED_SWORDSMAN, T_SCALE_BARDING_ARMOR],
             U_BARRACKS
         ),
-        array(
-            "Archer Upgrade 1 (Feudal Upgrades)", 
-            U_ARCHER,
-            [200],  
-            [T_FEUDAL_AGE],
-            [T_FLETCHING, T_LEATHER_ARCHER_ARMOR],
-            U_ARCHERY_RANGE
-        ),
-        array(
-            "Archer Upgrade 2 (Castle Upgrades + 1 Range)", 
-            U_CROSSBOWMAN,
-            [400],  
-            [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR],
-            [T_BODKIN_ARROW, T_PADDED_ARCHER_ARMOR, T_CROSSBOWMAN, T_ELITE_SKIRMISHER],
-            U_ARCHERY_RANGE
-        ),
-        array(
-            "Archer Upgrade 3 (Imperial Upgrades + 1 Range)", 
-            U_ARBALEST,
-            [800],  
-            [T_IMPERIAL_AGE, T_PADDED_ARCHER_ARMOR],
-            [T_CAVALRY_ARCHER_A, T_ARBALEST, T_RING_ARCHER_ARMOR],
-            U_ARCHERY_RANGE
-        ),
-        array(
-            "Cavalry Upgrade 1 (Feudal Upgrades)", 
-            U_SCOUT_CAVALRY,
-            [200],  
-            [T_FEUDAL_AGE],
-            [T_FORGING, T_BLOODLINES, T_SCALE_BARDING_ARMOR ],
-            U_STABLE
-        ),
-        array(
-            "Cavalry Upgrade 2 (Castle Upgrades + 1 Stable)", 
-            U_KNIGHT,
-            [400],  
-            [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR, T_SCALE_BARDING_ARMOR],
-            [T_FORGING,  T_PLATE_BARDING_ARMOR],
-            U_STABLE
-        ),
-        array(
-            "Cavalry Upgrade 3 (Imperial Upgrades + 1 Stable)", 
-            U_PALADIN,
-            [1000],  
-            [T_IMPERIAL_AGE, T_PLATE_MAIL_ARMOR],
-            [T_CAVALIER, T_PALADIN, T_HUSSAR, T_HEAVY_CAMEL, T_PLATE_BARDING_ARMOR],
-            U_STABLE
-        ),
+        // array(
+        //     "Archer Upgrade 1 (Feudal Upgrades)", 
+        //     U_ARCHER,
+        //     [200],  
+        //     [T_FEUDAL_AGE],
+        //     [T_FLETCHING, T_LEATHER_ARCHER_ARMOR],
+        //     U_ARCHERY_RANGE
+        // ),
+        // array(
+        //     "Archer Upgrade 2 (Castle Upgrades + 1 Range)", 
+        //     U_CROSSBOWMAN,
+        //     [400],  
+        //     [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR],
+        //     [T_BODKIN_ARROW, T_PADDED_ARCHER_ARMOR, T_CROSSBOWMAN, T_ELITE_SKIRMISHER],
+        //     U_ARCHERY_RANGE
+        // ),
+        // array(
+        //     "Archer Upgrade 3 (Imperial Upgrades + 1 Range)", 
+        //     U_ARBALEST,
+        //     [800],  
+        //     [T_IMPERIAL_AGE, T_PADDED_ARCHER_ARMOR],
+        //     [T_CAVALRY_ARCHER_A, T_ARBALEST, T_RING_ARCHER_ARMOR],
+        //     U_ARCHERY_RANGE
+        // ),
+        // array(
+        //     "Cavalry Upgrade 1 (Feudal Upgrades)", 
+        //     U_SCOUT_CAVALRY,
+        //     [200],  
+        //     [T_FEUDAL_AGE],
+        //     [T_FORGING, T_BLOODLINES, T_SCALE_BARDING_ARMOR ],
+        //     U_STABLE
+        // ),
+        // array(
+        //     "Cavalry Upgrade 2 (Castle Upgrades + 1 Stable)", 
+        //     U_KNIGHT,
+        //     [400],  
+        //     [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR, T_SCALE_BARDING_ARMOR],
+        //     [T_FORGING,  T_PLATE_BARDING_ARMOR],
+        //     U_STABLE
+        // ),
+        // array(
+        //     "Cavalry Upgrade 3 (Imperial Upgrades + 1 Stable)", 
+        //     U_PALADIN,
+        //     [1000],  
+        //     [T_IMPERIAL_AGE, T_PLATE_MAIL_ARMOR],
+        //     [T_CAVALIER, T_PALADIN, T_HUSSAR, T_HEAVY_CAMEL, T_PLATE_BARDING_ARMOR],
+        //     U_STABLE
+        // ),
     ];
 
     
@@ -238,10 +238,7 @@
     //     //array("Hail Mary (kill all units on field)", 500, array(), "Hail Mary", array(41, 42)),
         
     //     // 3rd row trigger activators
-    //     array("Spawn 5 Villagers", array(U_VILLAGER_M, 200, 300, 500, 600), array(T_LOOM), array(), "Vil Spawn 5", array(48, 30)),
     //     array("Clear Tower of Enemies", array(U_PETARD, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), array(T_LOOM), array(), "Bomb Area", array(48, 32)),
-    //     array("+1000 Tower Health", array(U_MONK, 100, 200, 300, 400, 500), array(T_LOOM),
-    //             array(), "Add 1000 Health", array(48, 34)),
         
     //     array("Murder Holes, Tower Attack/Range +5, Health Regain 4/sec", 300, array(T_FEUDAL_AGE),
     //             array(T_MURDER_HOLES), "Tower Upgrade 1", array(40, 32)),
