@@ -1,86 +1,119 @@
 <?php
 include('Data/wave_data.php');
-
 function Scenario($serial) {
+
     global $DEBUG;
     $DEBUG = true;
-
-    class PlayerContext {
-        public $playerId;
-
-        function __construct($playerId) {
-            $this->playerId = $playerId;
-        }
-
-        public function setPlayerId($playerId) {
-            $this->playerId = $playerId;
-        }
-
-        public function getName($objectName) {
-            return "{$this->playerId}: $objectName";
-        }
-
-        public function trig($triggerName, $S = 1, $L = 0, $P = 0, $E = 0, $D = '', $R = '') {
-            $triggerName = $this->getName($triggerName);
-            Trig($triggerName, $S, $L, $P, $E, $D, $R);
-            return $triggerName;
-        }
-
-        public function getEnemyId() {
-            return $this->playerId + 1;
-        }
-
-        public function act($triggerName) {
-            Efft_Act($this->getName($triggerName));
-        }
-
-        public function chat($text) {
-            Efft_Chat($this->playerId, $text);
-        }
-
-        // pt is of type pt
-        public function create($objectId, $pt, $playerId = NULL) {
-            if (!$playerId) $playerId = $this->playerId;
-            Efft_Create($playerId, $objectId, $pt->asArr());
-            setCell($pt->asArr(), TERRAIN_SNOW_DIRT_BUILDING_RESIDUE);
-        }
-
-        // pt is of type pt
-        public function createGaia($objectId, $pt) {
-            Efft_Create(0, $objectId, $pt->asArr());
-            setCell($pt->asArr(), TERRAIN_SNOW_DIRT_BUILDING_RESIDUE);
-        }
-
-        function createInArea($objectId, $area, $playerId = NULL) {
-            foreach (AreaPts($area) as $pt) 
-                if ($playerId === 0) 
-                    $this->createGaia($objectId, new Point($pt[0], $pt[1]));
-                else 
-                    $this->create($objectId, new Point($pt[0], $pt[1]), $playerId);
-        }
-    }
     
+
+    //function called whenever you use an unknown class. It will
+    //be passed the name of your class
+    function my_autoloader($class) {
+        include __DIR__ .'/classes/' . $class . '.class.php';
+    }
+
+    spl_autoload_register('my_autoloader');
+
+
+    function wallAreas($areas) {
+        $maxAtX = [];
+        $minAtX = [];
+        $allPts = [];
+        foreach ($areas as $a) {
+            foreach (AreaPts($a) as $p) {
+                $p = Point::fromArr($p);
+                if (!array_key_exists($p->x, $maxAtX)) 
+                    $maxAtX[$p->x] = new Point(0, 0);
+                
+                if (!array_key_exists($p->x, $minAtX)) 
+                    $minAtX[$p->x] = new Point(500, 500);
+                $curMax = $maxAtX[$p->x];
+                $curMin = $minAtX[$p->x];
+                if ($p->y > $curMax->y) 
+                        $maxAtX[$p->x] = $p;
+                if ($p->y < $curMin->y) 
+                        $minAtX[$p->x] = $p;
+                
+                array_push($allPts, $p);
+            }
+        }
+        sort($maxAtX);
+        sort($minAtX);
+        $lastMax = $maxAtX[0];
+        $diffIndex = [];
+        foreach($maxAtX as $i => $max) {
+            $diff = $max->y - $lastMax->y;
+            if ($diff != 0) $diffIndex[$i] = $diff;
+            $lastMax = $max;
+        }
+        $xDiffs = [];
+        foreach ($diffIndex as $x => $diff) {
+            $aMax = null;
+            $aMin = null;
+            if ($diff < 0) {
+                $aMax = AreaPts($maxAtX[$x]->offset(0, 1)->areaFromOffset(0, -$diff));
+                $aMin = AreaPts($minAtX[$x]->offset(0, -1)->areaFromOffset(0, $diff));
+            } else {
+                $aMax = AreaPts($maxAtX[$x - 1]->offset(0, 1)->areaFromOffset(0, $diff));
+    
+                $aMin = AreaPts($minAtX[$x - 1]->offset(0, -1)->areaFromOffset(0, -$diff));
+            }
+            $xDiffs = array_merge($xDiffs, $aMax);
+            $xDiffs = array_merge($xDiffs, $aMin);
+        }
+        $res = array_merge(
+            array_map(function($pt) {
+                return $pt->offset(0, 1)->asArr();
+            }, $maxAtX), 
+            array_map(function($pt) {
+                return $pt->offset(0, -1)->asArr();
+            }, $minAtX),
+            $xDiffs
+        );
+        foreach($res as $pt) {
+            Efft_Create(0, U_OLD_STONE_HEAD, $pt);
+            setCell($pt, TERRAIN_SHALLOWS);
+        }
+        return $res;
+    }
+
     class Point {
         public $x;
         public $y;
-
+    
         function __construct($x, $y) {
             $this->x = $x;
             $this->y = $y;
         }
-
+    
+        function equals($o) {
+            if ($this->x == $o->x && $this->y == $o->y) {
+                return 1;
+            } else {
+                return -1;
+            }
+        }
+    
+        function compare($o) {
+            return $this->y - $o->y;
+        }
+        
         function offset($dx, $dy = 0) {
             return new Point($this->x + $dx, $this->y + $dy);
         }
-
+    
         function asArr() {
             return array($this->x, $this->y);
         }
-
+    
+        function asLoc() {
+            return [$this->asArr()];
+        }
+    
         public static function fromArr($arr) {
             return new Point($arr[0], $arr[1]);
         }
-
+    
         /**
          * Returns the area created by the bounding box
          * of the two points
@@ -96,6 +129,68 @@ function Scenario($serial) {
             return $this->areaFromP2($this->offset($dx, $dy));
         }
     }
+
+class PlayerContext {
+    public $playerId;
+
+    function __construct($playerId) {
+        $this->playerId = $playerId;
+    }
+
+    public function setPlayerId($playerId) {
+        $this->playerId = $playerId;
+    }
+
+    public function getName($objectName) {
+        return "{$this->playerId}: $objectName";
+    }
+
+    public function trig($triggerName, $S = 1, $L = 0, $P = 0, $E = 0, $D = '', $R = '') {
+        $triggerName = $this->getName($triggerName);
+        Trig($triggerName, $S, $L, $P, $E, $D, $R);
+        return $triggerName;
+    }
+
+    public function getEnemyId() {
+        return $this->playerId + 1;
+    }
+
+    public function act($triggerName) {
+        Efft_Act($this->getName($triggerName));
+    }
+
+    public function chat($text) {
+        Efft_Chat($this->playerId, $text);
+    }
+
+    // pt is of type pt
+    public function create($objectId, $pt, $playerId = NULL) {
+        if (!$playerId) $playerId = $this->playerId;
+        Efft_Create($playerId, $objectId, $pt->asArr());
+        setCell($pt->asArr(), TERRAIN_SNOW_DIRT_BUILDING_RESIDUE);
+    }
+
+    // pt is of type pt
+    public function createGaia($objectId, $pt) {
+        Efft_Create(0, $objectId, $pt->asArr());
+        setCell($pt->asArr(), TERRAIN_SNOW_DIRT_BUILDING_RESIDUE);
+    }
+
+    function createInArea($objectId, $area, $playerId = NULL) {
+        foreach (AreaPts($area) as $pt) 
+            if ($playerId === 0) 
+                $this->createGaia($objectId, new Point($pt[0], $pt[1]));
+            else 
+                $this->create($objectId, new Point($pt[0], $pt[1]), $playerId);
+    }
+}
+    // // auto load all of the clesses in the source folder
+    // function my_autoloader($class) {
+    //     include 'src/classes/' . $class . '.class.php';
+    // }
+    // spl_autoload_register('my_autoloader');
+
+    //$test = new PlayerContext(1);
 
     class PlayerRegion extends PlayerContext {
         public $orientation = 'N';
@@ -185,6 +280,7 @@ function Scenario($serial) {
         }
 
         function renderWave() {
+
             $relicName = nameFromUnit($this->units);
             $this->trig($relicName, 1, 0);
                 Cond_Timer($this->time);
@@ -225,14 +321,19 @@ function Scenario($serial) {
             }
         }
     } 
-
+    
     class EnemySpawnZone extends PlayerRegion {
         function render() {
             parent::render();
             $this->killZoneTriggers();
-            $time = 30;
+            $time = 0;
             $waves = array();
-
+            $this->trig("Enemy Town Center");
+                Efft_RemoveO($this->getEnemyId());
+                $this->create(U_TOWN_CENTER, $this->origin->offset(-4), $this->getEnemyId());
+            $this->trig("Enemy Control", 1, 1);
+                Efft_PatrolO($this->getEnemyId(), $this->getArea(), $this->origin->offset(50)->asArr());
+            
             foreach($GLOBALS['UNITS'] as $i => $roundUnits) {
                 if (is_array($roundUnits)) {
                     $time += $roundUnits[0];
@@ -242,7 +343,7 @@ function Scenario($serial) {
                     ));
                 } else {
                     // age up break time
-                    $time += 90;
+                    $time += 120;
                     $eId = $this->getEnemyId();
                     $pId = $this->playerId;
                     $age = null;
@@ -282,7 +383,6 @@ function Scenario($serial) {
                 $waves[$i]->nextUnits = $waves[$i+1]->units;
             }
             foreach($waves as $wave) {
-                $wave->origin = $this->origin;
                 $wave->renderWave();
             }
         }
@@ -313,12 +413,19 @@ function Scenario($serial) {
             $this->trig("Enemy Town Center Invincible", 1, 1);
                 Cond_Timer(2);
                 Efft_HPY($this->getEnemyId(), 3, Y_BUILDING, $tcLoc->asArr());
-            $this->trig("Enemy Town Center");
-                Efft_RemoveO($this->getEnemyId());
-                $this->create(U_TOWN_CENTER, $tcLoc, $this->getEnemyId());
-            $this->trig("Tower Placement", 1, 0);
+
+            $this->trig("Tower Placement");
                 $this->create(U_WATCH_TOWER, $this->getCenter());
+                Efft_ChangeView($this->playerId, $this->getCenter()->asArr());
                 $this->act("Tower Death");
+
+            $unitLoc = $this->getCenter()->offset(1)->asArr();
+            $this->trig("Enemy Placement");
+                Efft_Create($this->getEnemyId(), U_MILITIA, $unitLoc);
+            $this->trig("Enemy Kill");
+                Cond_Timer(2);
+                Efft_KillU($this->getEnemyId(), U_MILITIA, $unitLoc);
+
             $this->trig("Tower Death", 0, 0, 1, "111", "Do not let your tower be destroyed by the enemyId buildings");
                 Cond_Timer(3);
                 Cond_NotOwnU($this->playerId, 1, U_WATCH_TOWER);
@@ -338,7 +445,6 @@ function Scenario($serial) {
             $this->trig("Game Over", 0);
                 Cond_Timer(6);
                 Efft_DeclareVictory($this->getEnemyId());
-
         }
 
         private function setTowerElevation() {
@@ -477,19 +583,20 @@ function Scenario($serial) {
                 );
                 $tech->setPlayerId($this->playerId);
                 $tech->setRequirements($techRaw[3]);
-                $buildingId = $techRaw[5];
                 $flag = 0;
                 if (in_array($tech->unitId, [U_LONG_SWORDSMAN, U_CROSSBOWMAN, U_KNIGHT])) {
                     $flag = 1;
-                } else if (in_array($tech->unitId, [U_CHAMPION, U_KNIGHT, U_PALADIN])) {
+                } else if (in_array($tech->unitId, [U_CHAMPION, U_ARBALEST, U_PALADIN])) {
                     $flag = 2;
                 }
+                $buildingId = $techRaw[5];
                 $origin = $this->getBaseOffsetForObject($buildingId);
-                $nameUniq = substr(uniqid(), 0, 5);
+                $nameUniq = "$i {$tech->relicName} yeet";
                 Trig($nameUniq, 0, 1);
                     $this->create($buildingId, $origin->offset(-$flag*$this->DISTANCE));
-                    foreach ((array)$techRaw[4] as $t)
+                    foreach ((array)$techRaw[4] as $t) {
                         Efft_Research($this->playerId, $t);
+                    }
                 $tech->placeAtLocation($base->offset(0, -8 + 2*$i), $nameUniq);
             }   
         }
@@ -503,9 +610,9 @@ function Scenario($serial) {
 
     class HouseZone extends PlayerRegion {
         function render() {
+            parent::render();
             $this->trig("House Place");
                 $this->createInArea(U_HOUSE, $this->getArea());
-            parent::render();
         }
     }
 
@@ -536,7 +643,7 @@ function Scenario($serial) {
             $vilSpawnArea = $this->createAreaRow(1, $this->origin->offset(-3), 5);
             $createVilTech = new Tech(
                 $this->VIL_TRIGGER_NAME,
-                U_SHEEP,
+                U_MONK,
                 [100, 200, 400, 800]
             );
             $createVilTech->setPlayerId($this->playerId);
@@ -605,7 +712,7 @@ function Scenario($serial) {
                     Cond_Timer(2); // debounce the last purchase
                     Cond_Accumulate($this->playerId, $cost, R_STONE_STORAGE);
                     Cond_InAreaU($this->playerId, 1, $this->unitId, $killLocation->asArr());
-                    Efft_KillU($this->playerId, $this->unitId, $killLocation->asArr());
+                    Efft_KillO($this->playerId, $killLocation->asArr());
                     Efft_Tribute($this->playerId, $cost, R_STONE_STORAGE, 0);
                     $this->chat("<YELLOW> Bought {$this->relicName} for {$cost} stone");
                     Efft_Act($triggerName);
@@ -629,10 +736,6 @@ function Scenario($serial) {
         }
     }
 
-    Trig(uniqid());
-        Efft_RemoveO(1);
-        Efft_RemoveO(2);
-
     /**
      * 
      * 
@@ -650,7 +753,7 @@ function Scenario($serial) {
         SetPlayerStartFood(1, 200);
         SetPlayerStartWood(1, 200);
         SetPlayerStartGold(1, 200);
-        SetPlayerStartStone(1, 200);
+        SetPlayerStartStone(1, 100);
     }
     SetAllTech(true);
     // terrain, width, height
@@ -675,6 +778,7 @@ function Scenario($serial) {
     $PLAYERS = [1, 3, 5, 7];
     $PLAYERS = [1];
     SetPlayersCount(2*count($PLAYERS));
+    //Trig(uniqid()); foreach($PLAYERS as $p) Efft_RemoveO($p);
     foreach ($PLAYERS as $i => $playerId) {
         SetPlayerMaxPop($playerId, 200);
         SetPlayerStartAge($playerId, "Dark");

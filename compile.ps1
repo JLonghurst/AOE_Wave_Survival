@@ -1,6 +1,5 @@
 Do {
     Invoke-Expression "php Compiler.php"
-    sleep 3
+    Start-Sleep 3
 }
-
 while ($true)

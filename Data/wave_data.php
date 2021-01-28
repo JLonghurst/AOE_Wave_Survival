@@ -81,9 +81,8 @@
     $UNITS = array(
         [30, array([U_MILITIA, 1])],
         [60, array([U_MILITIA, 3])],
-        [60, array([U_MILITIA, 5], [U_BATTERING_RAM, 3])],
-
-        // FEUDAL 
+        [60, array([U_MILITIA, 5])],
+        [90, array([U_MILITIA, 7], [U_BATTERING_RAM, 3])],
 
         "Feudal Upgrade",
 
@@ -132,6 +131,8 @@
         [60, array([U_HALBERDIER, 30], [U_HUSSAR, 30], [U_ELITE_SKIRMISHER, 30])],
         [60, array([U_PALADIN, 30], [U_CHAMPION, 30], [U_PALADIN, 30])],
     );
+
+
     //print(count($UNITS));
     $BANNED_BUILDINGS = [U_VILLAGER_F, U_VILLAGER_M, U_BLACKSMITH, U_MARKET, U_UNIVERSITY, U_MONASTERY, U_WATCH_TOWER, U_HOUSE];
     
@@ -158,7 +159,7 @@
             U_MAN_AT_ARMS,
             [200],  
             [T_FEUDAL_AGE],
-            [T_MAN_AT_ARMS, T_SCALE_MAIL_ARMOR],
+            [T_SQUIRES, T_MAN_AT_ARMS, T_SCALE_MAIL_ARMOR],
             U_BARRACKS
         ),
         array(
@@ -166,65 +167,65 @@
             U_LONG_SWORDSMAN,
             [400],  
             [T_CASTLE_AGE, T_SCALE_MAIL_ARMOR],
-            [T_LONG_SWORDSMAN, T_PIKEMAN, T_EAGLE_WARRIOR, T_SCALE_MAIL_ARMOR],
+            [T_LONG_SWORDSMAN, T_PIKEMAN, T_EAGLE_WARRIOR, T_CHAIN_MAIL_ARMOR],
             U_BARRACKS
         ),
         array(
             "Infandry Upgrade 3 (Imperial Upgrades + 1 Barracks)", 
             U_CHAMPION,
             [800],  
-            [T_IMPERIAL_AGE, T_SCALE_MAIL_ARMOR],
-            [T_CHAMPION, T_TWO_HANDED_SWORDSMAN, T_SCALE_BARDING_ARMOR],
+            [T_IMPERIAL_AGE, T_CHAIN_MAIL_ARMOR],
+            [T_CHAMPION, T_TWO_HANDED_SWORDSMAN, T_PLATE_MAIL_ARMOR, T_HALBERDIER, T_ELITE_EAGLE_WARRIOR],
             U_BARRACKS
         ),
-        // array(
-        //     "Archer Upgrade 1 (Feudal Upgrades)", 
-        //     U_ARCHER,
-        //     [200],  
-        //     [T_FEUDAL_AGE],
-        //     [T_FLETCHING, T_LEATHER_ARCHER_ARMOR],
-        //     U_ARCHERY_RANGE
-        // ),
-        // array(
-        //     "Archer Upgrade 2 (Castle Upgrades + 1 Range)", 
-        //     U_CROSSBOWMAN,
-        //     [400],  
-        //     [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR],
-        //     [T_BODKIN_ARROW, T_PADDED_ARCHER_ARMOR, T_CROSSBOWMAN, T_ELITE_SKIRMISHER],
-        //     U_ARCHERY_RANGE
-        // ),
-        // array(
-        //     "Archer Upgrade 3 (Imperial Upgrades + 1 Range)", 
-        //     U_ARBALEST,
-        //     [800],  
-        //     [T_IMPERIAL_AGE, T_PADDED_ARCHER_ARMOR],
-        //     [T_CAVALRY_ARCHER_A, T_ARBALEST, T_RING_ARCHER_ARMOR],
-        //     U_ARCHERY_RANGE
-        // ),
-        // array(
-        //     "Cavalry Upgrade 1 (Feudal Upgrades)", 
-        //     U_SCOUT_CAVALRY,
-        //     [200],  
-        //     [T_FEUDAL_AGE],
-        //     [T_FORGING, T_BLOODLINES, T_SCALE_BARDING_ARMOR ],
-        //     U_STABLE
-        // ),
-        // array(
-        //     "Cavalry Upgrade 2 (Castle Upgrades + 1 Stable)", 
-        //     U_KNIGHT,
-        //     [400],  
-        //     [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR, T_SCALE_BARDING_ARMOR],
-        //     [T_FORGING,  T_PLATE_BARDING_ARMOR],
-        //     U_STABLE
-        // ),
-        // array(
-        //     "Cavalry Upgrade 3 (Imperial Upgrades + 1 Stable)", 
-        //     U_PALADIN,
-        //     [1000],  
-        //     [T_IMPERIAL_AGE, T_PLATE_MAIL_ARMOR],
-        //     [T_CAVALIER, T_PALADIN, T_HUSSAR, T_HEAVY_CAMEL, T_PLATE_BARDING_ARMOR],
-        //     U_STABLE
-        // ),
+        array(
+            "Archer Upgrade 1 (Feudal Upgrades)", 
+            U_ARCHER,
+            [200],  
+            [T_FEUDAL_AGE],
+            [T_FLETCHING, T_LEATHER_ARCHER_ARMOR],
+            U_ARCHERY_RANGE
+        ),
+        array(
+            "Archer Upgrade 2 (Castle Upgrades + 1 Range)", 
+            U_CROSSBOWMAN,
+            [400],  
+            [T_CASTLE_AGE, T_LEATHER_ARCHER_ARMOR],
+            [T_THUMB_RING, T_BODKIN_ARROW, T_PADDED_ARCHER_ARMOR, T_CROSSBOWMAN, T_ELITE_SKIRMISHER],
+            U_ARCHERY_RANGE
+        ),
+        array(
+            "Archer Upgrade 3 (Imperial Upgrades + 1 Range)", 
+            U_ARBALEST,
+            [800],  
+            [T_IMPERIAL_AGE, T_PADDED_ARCHER_ARMOR],
+            [T_HEAVY_CAVALRY_ARCHER, T_ARBALEST, T_RING_ARCHER_ARMOR, T_PARTHIAN_TACTICS],
+            U_ARCHERY_RANGE
+        ),
+        array(
+            "Cavalry Upgrade 1 (Feudal Upgrades)", 
+            U_SCOUT_CAVALRY,
+            [200],  
+            [T_FEUDAL_AGE],
+            [T_FORGING, T_BLOODLINES, T_SCALE_BARDING_ARMOR],
+            U_STABLE
+        ),
+        array(
+            "Cavalry Upgrade 2 (Castle Upgrades + 1 Stable)", 
+            U_KNIGHT,
+            [400],  
+            [T_CASTLE_AGE, T_SCALE_BARDING_ARMOR],
+            [T_FORGING,  T_CHAIN_BARDING_ARMOR, T_LIGHT_CAVALRY],
+            U_STABLE
+        ),
+        array(
+            "Cavalry Upgrade 3 (Imperial Upgrades + 1 Stable)", 
+            U_PALADIN,
+            [1000],  
+            [T_IMPERIAL_AGE, T_CHAIN_BARDING_ARMOR],
+            [T_CAVALIER, T_PALADIN, T_HUSSAR, T_HEAVY_CAMEL, T_PLATE_BARDING_ARMOR],
+            U_STABLE
+        ),
     ];
 
     
