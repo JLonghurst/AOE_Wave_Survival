@@ -1,5 +1,4 @@
 <?php
-
 # Types
 define('Y_BUILDING',2);
 define('Y_CIVILIAN',3);

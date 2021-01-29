@@ -1,3 +1,5 @@
 {
-    "php.validate.executablePath": ""
+    "php.validate.executablePath": "",
+    // Set the default
+    "editor.formatOnSave": true
 }

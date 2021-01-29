@@ -1,4 +1,5 @@
-<?php SCX::$microtime = microtime(true);
+<?php 
+SCX::$microtime = microtime(true);
 
 
 
@@ -6,7 +7,6 @@
 # Run this file two times to build your scenario that you wrote in Scenario.php. If you run it once activations/deactivations effects won't work.
 # Script is made for 1.4 RC or HD maps, it can work for 1.0c if you don't use 1.4 RC / HD features (new triggers effects).
 # HD Designer: PSE can't read HD scenarios, so use 1.0c / 1.4 RC maps as input file. Set $editor_version to 'HD' to use new triggers effects.
-
 
 
 # --- Compiler configuration --- #
@@ -26,11 +26,15 @@ SCX::$editor_version = 'HD'; # 1.0c / 1.4RC / HD - Enable new triggers effects d
 # Code below is used to read/write scx files, modify it can break the script.
 # You don't need to understand it to make scenarios.
 
-include 'Data/data_aok.php'; # Import aoc constants
-include 'Library.php'; # Import standard library functions
-include 'Scenario.php'; # Import scenario code
+require 'Data/data_aok.php'; # Import aoc constants
+require 'Library.php'; # Import standard library functions
+
+require 'Data/wave_data.php';
+require 'src/classes/UnitStats.php';
+require 'src/scenario/Scenario.php'; # Import scenario code
 # Add your extra project files / libraries here
 # IMPORTANT: You should name your custom functions with camelCase. PascalCase should be reserved for standard libraries, it will prevent conflicts.
+
 
 if(file_exists('Triggers.inc')) include 'Triggers.inc'; # Get triggers IDs from last compilation
 

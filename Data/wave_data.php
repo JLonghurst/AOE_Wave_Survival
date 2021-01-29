@@ -78,6 +78,20 @@
     // $spawns100 = Spawn_Box(array(4, $SPAWN_CENTER_X), array(13, 71));
     // // big spawn
     // $spawnsB_5 = Spawn_Box(array(7, $SPAWN_CENTER_X+13), array(11, $SPAWN_CENTER_X+13));
+
+
+    class UnitModel {
+        public $unitId;
+        public $unitCount;
+    }
+
+    class Wave {
+        public $time;
+
+        public $units;
+
+    }
+
     $UNITS = array(
         [30, array([U_MILITIA, 1])],
         [60, array([U_MILITIA, 3])],
