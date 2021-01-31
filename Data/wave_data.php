@@ -86,7 +86,6 @@
         $unitStat = new UnitStats($foodCost, $woodCost, $goldCost, $createTime);
         $UNIT_STAT_MAP[$name] = $unitStat;
     }
-    //print_r($UNIT_STAT_MAP);
 
     $UNITS = array(
         [30, array([U_MILITIA, 1])],
@@ -153,23 +152,30 @@
         public $unitId;
         public $unitCount;
         public $unitName;
-        public $unitStats;
+        public UnitStats $unitStats;
 
         public function __construct($unitId, $unitCount) {
             $this->unitId =  $unitId;
             $this->unitCount =  $unitCount;
             $this->unitName = unitNameById($unitId);
-            //print_r($GLOBALS['UNIT_STAT_MAP'][$this->unitName]);
             $this->unitStats = $GLOBALS['UNIT_STAT_MAP'][$this->unitName];
             if ($this->unitStats == null) {
                 print("\n no stat for name: {$this->unitName}\n");
             }
         }
+
+        public function getName() {
+            return "{$this->unitCount} {$this->unitName}";
+        }
+
+        public function getProductionRequirement() {
+            return $this->unitStats->createTime * $this->unitCount;
+        }
     }
 
     class SpawnRound {
         public $roundTime;
-        public $unitSpawnList;
+        public array $unitSpawnList;
 
         public function __construct($raw) {
             $this->roundTime = $raw[0];
@@ -179,26 +185,59 @@
                 return new UnitSpawn($unitId, $unitCount);
             }, (array)$raw[1]);
         }
+
+        public function getRoundName() {
+            $roundName = '';
+            foreach($this->unitSpawnList as $i => $unitSpawn) {
+                if ($i != 0) $roundName .= ', ';
+                $roundName .= $unitSpawn->getName();
+            }
+            return $roundName;
+        }
+
+        public function getTotalComputedVillagerTime() {
+            $total = 0;
+            foreach($this->unitSpawnList as $unitSpawn) {
+                $total += 
+                    $unitSpawn->unitStats->getComputedVillagerTime() 
+                    * $unitSpawn->unitCount;
+            }
+            return $total;
+        }
+
+        public function getProductionTime() {
+            $totalProductionTime = 0;
+            foreach($this->unitSpawnList as $unitSpawn) {
+                $totalProductionTime += 
+                    $unitSpawn->unitStats->createTime;
+            }
+            return $totalProductionTime;
+        }
+
+        public function printStats() {
+            $total_vil_time = $this->getTotalComputedVillagerTime(); 
+            $total_production_time = $this->getProductionTime();
+            $result = array(
+                "Round Time" => $this->roundTime,
+                "Units" => $this->getRoundName(),
+                "Total Vil Time" => $total_vil_time,
+                "Total Production Times" => $total_production_time,
+                "Vil Time Per Second" => $total_vil_time / $this->roundTime,
+                "Production Time Per Second" => $total_production_time / $this->roundTime,
+                // "UnitName" => $stat->unitName,
+                // "UnitCount" => $stat->unitCount,
+            );
+            print_r($result);
+            print("\n");
+        }
     }
 
     $yeetFeet = array_map(function ($raw) {
         return new SpawnRound($raw);
     }, $UNITS_NEW);
-    print_r($yeetFeet);
 
-    foreach($yeetFeet as $yeet) {
-        // $vilTime = $yeet->getComputedVillagerTime();
-        // $count = 
-        // $result = array(
-        //     "Total villager time" => $this->nextTime - $this->time,
-        //     "Required Villager Time" => $vilTime,
-        //     "UnitName" => $stat->unitName,
-        //     "UnitCount" => $stat->unitCount,
-        // );
-        // if ($vilTime > 0) {
-        //     //print_r($result);
-        //     print("\n");
-        // }
+    foreach($yeetFeet as $spawnRound) {
+        $spawnRound->printStats();
     }
 
     // array of entitys and spawn numbers, and a time of round
