@@ -7,6 +7,8 @@ class UnitStats {
     public $foodCount;
     public $woodCount;
     public $goldCount;
+    public $createTime;
+    public $unitName;
 
     /**
      * Creates a new unit statstic
@@ -15,10 +17,16 @@ class UnitStats {
      * @param float $woodCount the ammount of wood the unit costs
      * @param float $goldCount the ammount of gold the unit costs
      */
-    function __construct($foodCount, $woodCount = 0, $goldCount = 0) {
+    function __construct(
+        $foodCount, 
+        $woodCount = 0, 
+        $goldCount = 0, 
+        $createTime
+    ) {
         $this->foodCount = $foodCount;
         $this->woodCount = $woodCount;
         $this->goldCount = $goldCount;
+        $this->createTime = $createTime;
     }
 
     /**
@@ -28,9 +36,9 @@ class UnitStats {
      * @return float
      */
     function getComputedVillagerTime() {
-        return $this->foodCount * $FOOD_GATHER_RATE 
-            + $this->woodCount * $WOOD_GATHER_RATE 
-            + $this->goldCount * $GOLD_GATHER_RATE;
+        return $this->foodCount * $this->FOOD_GATHER_RATE 
+            + $this->woodCount * $this->WOOD_GATHER_RATE 
+            + $this->goldCount * $this->GOLD_GATHER_RATE;
     }
 }
 ?>

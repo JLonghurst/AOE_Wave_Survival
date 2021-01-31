@@ -29,7 +29,7 @@ class EnemyWave extends PlayerRegion {
     private $unitStatMap = null;
     private function getUnitStatMap() {
         if ($this->unitStatMap == null) {
-            $this->unitStatMap = $this->csvDataParse();
+            $this->unitStatMap = $this->parseUnitStatMap();
         } 
         return $this->unitStatMap;
     }
@@ -75,24 +75,26 @@ class EnemyWave extends PlayerRegion {
         }
     }
 
-    function csvDataParse() {
+    function parseUnitStatMap() {
         $csvData = file_get_contents('C:\Code\AOE_Wave_Survival\Data\unitStats.csv');
         $lines = explode(PHP_EOL, $csvData);
-        $array = array();
+        $unitStatMap = array();
         foreach ($lines as $line) {
             $raw = str_getcsv($line);
 
             $name = $raw[1];
             $createTime = $raw[2];
-            $foodCost = $raw[5];
-            $woodCost = $raw[6];
-            $goldCost = $raw[7];
+            $foodCost = floatval($raw[5]);
+            $woodCost = floatval($raw[6]);
+            $goldCost = floatval($raw[7]);
             
-            $unitStat = new UnitStats($foodCost, $woodCost, $goldCost);
+            $unitStat = new UnitStats($foodCost, $woodCost, $goldCost, $createTime);
             $unitStat->productionTime = $createTime;
-            $array[$name] = $unitStat;
+            $unitStat->unitName = $name;
+
+            $unitStatMap[$name] = $unitStat;
         }
-        return $array;
+        return $unitStatMap;
     }
 
     function getUnitStat($unitId) {
@@ -109,19 +111,21 @@ class EnemyWave extends PlayerRegion {
         $stats = array();
         foreach((array)$this->units as $unit) {
             $unitId = $unit[0];
-            $unitSize = $unit[1];
+            $unitCount = $unit[1];
             array_push($stats, $this->getUnitStat($unitId));
         }
         // REQUIRED 
         foreach($stats as $stat) {
             $vilTime = $stat->getComputedVillagerTime();
+            $count = 
             $result = array(
                 "Total villager time" => $this->nextTime - $this->time,
-                "Required Villager Time For Round" => $vilTime,
+                "Required Villager Time" => $vilTime,
+                "UnitName" => $stat->unitName,
             );
+            print_r($result);
+            print("\n");
             if ($vilTime > 0) {
-                print_r($result);
-                print("\n");
             }
         }
     }
