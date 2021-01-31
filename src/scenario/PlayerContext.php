@@ -32,14 +32,27 @@ class PlayerContext {
         Efft_Chat($this->playerId, $text);
     }
 
-    // pt is of type pt
+    /**
+     * Create on object for the specified player at the specified location
+     *
+     * @param integer $objectId the id of the object to create
+     * @param Point $pt to location to create it at 
+     * @param integer $playerId the if of the player id (defaults to this player)
+     * @return void
+     */
     public function create($objectId, $pt, $playerId = NULL) {
         if (!$playerId) $playerId = $this->playerId;
         Efft_Create($playerId, $objectId, $pt->asArr());
         setCell($pt->asArr(), TERRAIN_SNOW_DIRT_BUILDING_RESIDUE);
     }
 
-    // pt is of type pt
+    /**
+     * Create an object for gaia
+     *
+     * @param integer $objectId the id of the object to create
+     * @param Point $pt to location to create it at 
+     * @return void
+     */
     public function createGaia($objectId, $pt) {
         Efft_Create(0, $objectId, $pt->asArr());
         setCell($pt->asArr(), TERRAIN_SNOW_DIRT_BUILDING_RESIDUE);

@@ -38,11 +38,21 @@ class PlayerRegion extends PlayerContext {
     }
 
     public function getArea() {
-        return AreaAdvanced($this->origin->asArr(), $this->orientation, $this->width, $this->depth);
+        return AreaAdvanced(
+            $this->origin->asArr(), 
+            $this->orientation, 
+            $this->width, 
+            $this->depth
+        );
     }
 
     public function getAreaWithWidth($width) {
-        return AreaAdvanced($this->origin->asArr(), $this->orientation, $width, $this->depth);
+        return AreaAdvanced(
+            $this->origin->asArr(),
+            $this->orientation, 
+            $width, 
+            $this->depth
+        );
     }
 
     public function getCenter() {

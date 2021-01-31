@@ -1,46 +1,56 @@
 <?php
-    function nameFromUnit($units) {
+
+
+    function unitNameById($unitId) {
         $ENEMY_NAME_MAP = array(
-            U_MILITIA => "Militia",
-            U_BATTERING_RAM => "Rams",
-            U_SCOUT_CAVALRY => "Scouts",
-            U_ARCHER => "Archers",
+            U_BATTERING_RAM => "Battering Ram",
+            U_SCOUT_CAVALRY => "Scout Cavalry",
+            U_ARCHER => "Archer",
             U_KNIGHT => "Knight",
+            U_MILITIA => "Militia",
             U_MAN_AT_ARMS => "Man At Arms",
+            U_LONG_SWORDSMAN => "Long Swordsman",
             U_SKIRMISHER => "Skirmisher",
+            U_ELITE_SKIRMISHER => "Elite Skirmisher",
             U_ARCHERY_RANGE => "Range",
-            U_BARRACKS => "Barracks",
+            U_BARRACKS => "Barrack",
             U_STABLE => "Stable",
             U_HEAVY_CAMEL => "Heavy Camel", 
-            U_PALADIN => "Palidin", 
-            U_TWO_HANDED_SWORDSMAN => "Two Handed Swordsmen", 
+            U_PALADIN => "Paladin", 
+            U_TWO_HANDED_SWORDSMAN => "Two-handed Swordsman", 
             U_ONAGER => "Onager", 
-            U_HEAVY_SCORPION => "Heavy Scorpian", 
             U_CAVALIER => "Cavalier", 
             U_HUSSAR => "Hussar", 
-            U_TREBUCHET_P => "Trebs", 
-            U_WAR_ELEPHANT => "War Elepahent", 
-            U_LONGBOWMAN => "Longbowmen", 
-            U_CAVALRY_ARCHER => "Cav Archer", 
-            U_CROSSBOWMAN => "Crossbowmen",
-            U_EAGLE_SCOUT => "Eagle Scout", 
-            U_PIKEMAN => "Pikemen", 
-            U_LIGHT_CAVALRY => "Light Cavalry", 
-            U_CAMEL => "Camel", 
-            U_LONG_SWORDSMAN => "Long Swordsmen", 
+            U_TREBUCHET_P => "Trebuchet", 
+            U_WAR_ELEPHANT => "War Elephant",
+            U_LONGBOWMAN => "Longbowman",
+            U_CAVALRY_ARCHER => "Cavalry Archer",
+            U_HEAVY_CAVALRY_ARCHER => "Heavy Cavalry Archer",
+            U_CROSSBOWMAN => "Crossbowman",
+            U_EAGLE_SCOUT => "Eagle Scout",
+            U_PIKEMAN => "Pikeman",
+            U_LIGHT_CAVALRY => "Light Cavalry",
+            U_CAMEL => "Camel",
             U_MANGONEL => "Mangonel", 
-            U_ELITE_SKIRMISHER => "Elite Skirms", 
             U_CHAMPION => "Champion",
             U_SIEGE_RAM => "Siege Ram",
-            U_PETARD => "Petards",
-            U_HEAVY_CAVALRY_ARCHER => "Heavy Cav Arch",
-            U_HALBERDIER => "Halbs",
-            U_ELITE_EAGLE_WARRIOR => "Eagle Warriors",
-            U_SCORPION => "Scorpians",
-            T_HEAVY_CAMEL => "Heavy Camels",
-            U_HAND_CANNONEER => "Hand Cannoneers",
-            U_BOMBARD_CANNON => "Bombard Cannons"
+            U_PETARD => "Petard",
+            U_HALBERDIER => "Halberdier",
+            U_ELITE_EAGLE_WARRIOR => "Eagle Warrior",
+            U_SCORPION => "Scorpion",
+            U_HEAVY_SCORPION => "Heavy Scorpion", 
+            T_HEAVY_CAMEL => "Heavy Camel",
+            U_HAND_CANNONEER => "Hand Cannoneer",
+            U_BOMBARD_CANNON => "Bombard Cannon"
         ); 
+        $name = $ENEMY_NAME_MAP[$unitId];
+        if ($name == null) {
+            print('no mapping for id: ' . $unitId);
+        }
+        return $name;
+    }
+
+    function nameFromUnit($units) {
         $yeet = "";
         $i = 0;
         foreach ((array)$units as $unit) {
@@ -48,8 +58,8 @@
             $i++;
             $unitId = $unit[0];
             $unitCount = $unit[1];
-            $human_name = $ENEMY_NAME_MAP[$unitId];
-            $yeet .= "{$unitCount} {$human_name}";
+            $unitName = unitNameById($unitId);
+            $yeet .= "{$unitCount} {$unitName}";
         }
         return $yeet;
     }
@@ -80,17 +90,16 @@
     // $spawnsB_5 = Spawn_Box(array(7, $SPAWN_CENTER_X+13), array(11, $SPAWN_CENTER_X+13));
 
 
-    class UnitModel {
+    class UnitSpawn {
         public $unitId;
         public $unitCount;
     }
 
     class Wave {
         public $time;
-
         public $units;
-
     }
+
 
     $UNITS = array(
         [30, array([U_MILITIA, 1])],

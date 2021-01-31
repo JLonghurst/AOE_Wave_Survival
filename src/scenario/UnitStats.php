@@ -11,9 +11,9 @@ class UnitStats {
     /**
      * Creates a new unit statstic
      *
-     * @param integer $foodCount the ammount of food the unit costs
-     * @param integer $woodCount the ammount of wood the unit costs
-     * @param integer $goldCount the ammount of gold the unit costs
+     * @param float $foodCount the ammount of food the unit costs
+     * @param float $woodCount the ammount of wood the unit costs
+     * @param float $goldCount the ammount of gold the unit costs
      */
     function __construct($foodCount, $woodCount = 0, $goldCount = 0) {
         $this->foodCount = $foodCount;
@@ -25,7 +25,7 @@ class UnitStats {
      * returns a float representing the ammount of villager
      * time is require to create the unit
      *
-     * @return void
+     * @return float
      */
     function getComputedVillagerTime() {
         return $this->foodCount * $FOOD_GATHER_RATE 

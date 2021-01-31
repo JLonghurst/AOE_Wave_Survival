@@ -10,39 +10,6 @@ class EnemyWave extends PlayerRegion {
     public $nextTime;
     public $nextUnits;
 
-    private $swordsMen = [U_MILITIA, U_MAN_AT_ARMS, U_CHAMPION];
-    private $archers = [U_ARCHER, U_CROSSBOWMAN, U_ARBALEST];
-    private $lightCavalry = [U_SCOUT_CAVALRY, U_LIGHT_CAVALRY, U_HUSSAR];
-
-    function getUnitStat($unitId) {
-        // $stat = new UnitStats(0);
-        // if (in_array($unitId, $swordsMen)) {
-        //     $stat = new UnitStats(60, 20);
-        // } else if (in_array($unitId, $archers)) {
-        //     $stat = new UnitStats(0, 25, 45);
-        // } else if (in_array($unitId, $lightCavalry)) {
-        //     $stat = new UnitStats(90, 0);
-        // }
-        // print($stat);
-        // return $stat;
-    }
-
-    function getUnitStats() {
-        $stats = array();
-        foreach((array)$this->units as $unit) {
-            $unitId = $unit[0];
-            $unitSize = $unit[1];
-            array_push($stats, $this->getUnitStat($unit));
-        }
-        //print_r($stats);
-    }
-
-    function evaluateDifficulty() {
-        $swordLine = new UnitStats(60, 20);
-        $knightLine = new UnitStats(60, 75);
-        $archerLine = new UnitStats(0, 45, 25);
-    }
-
     function __construct(
         $playerId, 
         $width, 
@@ -57,6 +24,14 @@ class EnemyWave extends PlayerRegion {
         $this->time = $time;
         $this->payment = $payment;
         $this->units = $units;
+    }
+
+    private $unitStatMap = null;
+    private function getUnitStatMap() {
+        if ($this->unitStatMap == null) {
+            $this->unitStatMap = $this->csvDataParse();
+        } 
+        return $this->unitStatMap;
     }
 
     function renderWave() {
@@ -98,7 +73,57 @@ class EnemyWave extends PlayerRegion {
                 "in $roundDiff seconds. \n\n Next: $nextName"
             );
         }
-        $this->getUnitStats();
+    }
+
+    function csvDataParse() {
+        $csvData = file_get_contents('C:\Code\AOE_Wave_Survival\Data\unitStats.csv');
+        $lines = explode(PHP_EOL, $csvData);
+        $array = array();
+        foreach ($lines as $line) {
+            $raw = str_getcsv($line);
+
+            $name = $raw[1];
+            $createTime = $raw[2];
+            $foodCost = $raw[5];
+            $woodCost = $raw[6];
+            $goldCost = $raw[7];
+            
+            $unitStat = new UnitStats($foodCost, $woodCost, $goldCost);
+            $unitStat->productionTime = $createTime;
+            $array[$name] = $unitStat;
+        }
+        return $array;
+    }
+
+    function getUnitStat($unitId) {
+        $unitName = unitNameById($unitId);
+        $dataMap = $this->getUnitStatMap();
+        $stat = $dataMap[$unitName];
+        if ($stat == null) {
+            print("no stat for name: {$unitName}\n");
+        }
+        return $stat;
+    }    
+    
+    function getUnitStats() {
+        $stats = array();
+        foreach((array)$this->units as $unit) {
+            $unitId = $unit[0];
+            $unitSize = $unit[1];
+            array_push($stats, $this->getUnitStat($unitId));
+        }
+        // REQUIRED 
+        foreach($stats as $stat) {
+            $vilTime = $stat->getComputedVillagerTime();
+            $result = array(
+                "Total villager time" => $this->nextTime - $this->time,
+                "Required Villager Time For Round" => $vilTime,
+            );
+            if ($vilTime > 0) {
+                print_r($result);
+                print("\n");
+            }
+        }
     }
 } 
 ?>

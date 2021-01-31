@@ -1,0 +1,154 @@
+index,name,creation time,food count,decay rate,food cost,wood cost,gold cost
+1,Arambai,21,,,0,80,60
+2,Arbalest,27,,,0,25,45
+3,Archer,35,,,0,25,45
+4,Ballista Elephant,25,,,0,0,80
+5,Battering Ram,36,,,0,60,75
+6,Battle Elephant,28,,,20,0,70
+7,Berserk,14,,,65,0,25
+8,Bombard Cannon,56,,,0,25,25
+9,Boyar,23,,,50,0,80
+10,Camel,22,,,55,0,60
+11,Camel,,,,0,0,0
+12,Camel Archer,21,,,0,50,60
+13,Cannon Galleon,46,,,0,0,50
+14,Capped Ram,36,,,0,60,75
+15,Caravel,36,,,0,90,40
+16,Cataphract,20,,,70,0,75
+17,Cavalier,30,,,60,0,75
+18,Cavalry Archer,34,,,0,40,60
+19,Champion,21,,,60,0,20
+20,Chu Ko Nu,16,,,0,40,35
+21,Condottiero,18,,,50,0,35
+22,Conquistador,24,,,60,0,70
+23,Cow,,150,0.25,0,0,0
+24,Crossbowman,27,,,0,25,45
+25,Deer,,140,,0,0,0
+26,Demolition Raft,45,,,0,70,50
+27,Demolition Ship,31,,,0,70,50
+28,Eagle Scout,,,,0,0,0
+29,Eagle Scout,0,,,20,0,50
+30,Eagle Scout,35,,,20,0,50
+31,Eagle Warrior,35,,,20,0,50
+32,Elephant,,400,,0,0,0
+33,Elephant Archer,25,,,0,0,80
+34,Elite Arambai,21,,,0,80,60
+35,Elite Ballista Elephant,25,,,0,0,80
+36,Elite Battle Elephant,28,,,20,0,70
+37,Elite Berserk,14,,,65,0,25
+38,Elite Boyar,20,,,50,0,80
+39,Elite Camel Archer,21,,,0,50,60
+40,Elite Cannon Galleon,46,,,0,0,50
+41,Elite Caravel,36,,,0,90,40
+42,Elite Cataphract,20,,,70,0,75
+43,Elite Chu Ko Nu,13,,,0,40,35
+44,Elite Conquistador,24,,,60,0,70
+45,Elite Eagle Warrior,20,,,20,0,50
+46,Elite Elephant Archer,25,,,0,0,80
+47,Elite Gbeto,17,,,50,0,40
+48,Elite Genitour,23,,,50,35,0
+49,Elite Genoese Crossbowman,19,,,45,0,45
+50,Elite Huskarl,16,,,52,0,26
+51,Elite Jaguar Warrior,17,,,60,0,30
+52,Elite Janissary,17,,,60,0,55
+53,Elite Kamayuk,10,,,60,0,30
+54,Elite Karambit Warrior,6,,,30,0,15
+55,Elite Longboat,25,,,0,80,40
+56,Elite Longbowman,18,,,0,35,40
+57,Elite Magyar Huszar,16,,,80,0,10
+58,Elite Mameluke,23,,,55,0,85
+59,Elite Mangudai,26,,,0,55,65
+60,Elite Organ Gun,21,,,0,80,60
+61,Elite Plumed Archer,16,,,0,35,35
+62,Elite Rattan Archer,16,,,0,50,45
+63,Elite Samurai,9,,,60,0,30
+64,Elite Shotel Warrior,8,,,50,0,35
+65,Elite Skirmisher,22,,,25,35,0
+66,Elite Tarkan,14,,,60,0,60
+67,Elite Tarkan,20,,,60,0,60
+68,Elite Teutonic Knight,12,,,85,0,40
+69,Elite Throwing Axeman,17,,,55,0,25
+70,Elite Turtle Ship,50,,,0,80,80
+71,Elite War Elephant,31,,,0,0,75
+72,Elite War Wagon,21,,,0,10,60
+73,Elite Woad Raider,10,,,65,0,25
+74,Fast Fire Ship,36,,,0,75,45
+75,Fire Galley,0,,,0,75,45
+76,Fire Ship,36,,,0,75,45
+77,Fishing Ship,40,,,0,75,0
+78,Galleon,36,,,0,90,30
+79,Galley,0,,,0,90,30
+80,Gbeto,17,,,50,0,40
+81,Genitour,25,,,50,35,0
+82,Genoese Crossbowman,22,,,45,0,45
+83,Goat,,100,0.25,0,0,0
+84,Halberdier,22,,,35,25,0
+85,Hand Cannoneer,34,,,45,0,50
+86,Heavy Camel,22,,,55,0,60
+87,Heavy Cavalry Archer,27,,,0,40,60
+88,Heavy Demolition Ship,31,,,0,70,50
+89,Heavy Scorpion,30,,,0,75,75
+90,Horse,,,,0,0,0
+91,Huskarl,16,,,52,0,26
+92,Hussar,30,,,80,0,0
+93,Imperial Camel,20,,,55,0,60
+94,Imperial Skirmisher,22,,,25,35,0
+95,Jaguar,,,,0,0,0
+96,Jaguar Warrior,17,,,60,0,30
+97,Janissary,17,,,60,0,55
+98,Kamayuk,10,,,60,0,30
+99,Karambit Warrior,6,,,30,0,15
+100,King,30,,,50,0,0
+101,Knight,30,,,60,0,75
+102,Light Cavalry,30,,,80,0,0
+103,Llama,,100,0.25,0,0,0
+104,Long Swordsman,21,,,60,0,20
+105,Longboat,25,,,0,85,43
+106,Longbowman,18,,,0,35,40
+107,Magyar Huszar,16,,,80,0,10
+108,Mameluke,23,,,55,0,85
+109,Man-at-arms,21,,,60,0,20
+110,Mangonel,46,,,0,60,35
+111,Mangudai,26,,,0,55,65
+112,Militia,21,,,60,0,20
+112,Man At Arms,21,,,60,0,20
+113,Missionary,51,,,0,0,0
+114,Monk,51,,,0,0,0
+115,Onager,46,,,0,60,35
+116,Organ Gun,21,,,0,80,60
+117,Ostrich,,140,,0,0,0
+118,Paladin,30,,,60,0,75
+119,Petard,25,,,65,0,20
+120,Pikeman,22,,,35,25,0
+121,Plumed Archer,16,,,0,40,40
+122,Rattan Archer,16,,,0,50,45
+123,Samurai,9,,,60,0,30
+124,Scorpion,30,,,0,75,75
+126,Scout Cavalry,30,,,80,0,0
+127,Sheep,,100,,0,0,0
+128,Shotel Warrior,8,,,50,0,35
+129,Siege Onager,46,,,0,60,35
+130,Siege Ram,36,,,0,60,75
+131,Siege Tower,36,,,0,0,60
+132,Skirmisher,22,,,25,35,0
+133,Slinger,25,,,30,0,40
+134,Spearman,22,,,35,25,0
+135,Tarkan,14,,,60,0,60
+136,Tarkan,21.7,,,60,0,60
+137,Teutonic Knight,12,,,85,0,40
+138,Throwing Axeman,17,,,55,0,25
+139,Trade Cart,50,,,0,0,50
+140,Trade Cog,36,,,0,0,50
+141,Transport Ship,45,,,0,25,0
+142,Trebuchet,50,,,0,200,200
+143,Turkey,,100,,0,0,0
+144,Turtle Ship,50,,,0,80,80
+145,Two-handed Swordsman,21,,,60,0,20
+146,Villager,25,,,50,0,0
+147,War Elephant,31,,,0,0,75
+148,War Galley,36,,,0,90,30
+149,War Wagon,21,,,0,10,60
+150,Wild Boar,,340,,0,0,0
+151,Woad Raider,10,,,65,0,25
+152,Wolf,,,,0,0,0
+153,Zebra,,140,,0,0,0

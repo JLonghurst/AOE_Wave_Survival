@@ -30,7 +30,6 @@ require 'Data/data_aok.php'; # Import aoc constants
 require 'Library.php'; # Import standard library functions
 
 require 'Data/wave_data.php';
-require 'src/classes/UnitStats.php';
 require 'src/scenario/Scenario.php'; # Import scenario code
 # Add your extra project files / libraries here
 # IMPORTANT: You should name your custom functions with camelCase. PascalCase should be reserved for standard libraries, it will prevent conflicts.

@@ -1,5 +1,7 @@
 <?php
 class EnemySpawnZone extends PlayerRegion {
+
+
     function render() {
         parent::render();
         $this->killZoneTriggers();
@@ -68,6 +70,7 @@ class EnemySpawnZone extends PlayerRegion {
         }
         foreach($waves as $wave) {
             $wave->renderWave();
+            $wave->getUnitStats();
         }
     }
 
