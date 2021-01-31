@@ -70,7 +70,6 @@ class EnemySpawnZone extends PlayerRegion {
         }
         foreach($waves as $wave) {
             $wave->renderWave();
-            $wave->getUnitStats();
         }
     }
 

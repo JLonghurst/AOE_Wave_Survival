@@ -1,5 +1,14 @@
 <?php
-
+    $BANNED_BUILDINGS = [
+        U_VILLAGER_F, 
+        U_VILLAGER_M, 
+        U_BLACKSMITH, 
+        U_MARKET, 
+        U_UNIVERSITY, 
+        U_MONASTERY, 
+        U_WATCH_TOWER,
+        U_HOUSE
+    ];
 
     function unitNameById($unitId) {
         $ENEMY_NAME_MAP = array(
@@ -42,7 +51,7 @@
             T_HEAVY_CAMEL => "Heavy Camel",
             U_HAND_CANNONEER => "Hand Cannoneer",
             U_BOMBARD_CANNON => "Bombard Cannon"
-        ); 
+        );
         $name = $ENEMY_NAME_MAP[$unitId];
         if ($name == null) {
             print('no mapping for id: ' . $unitId);
@@ -63,43 +72,21 @@
         }
         return $yeet;
     }
-    // must be size 16 for current use in random generator
-    // $unique_spawn_data = [
-    //     array("60 Longbowman", U_LONGBOWMAN, $spawn1_60),
-    //     array("60 Cataphract", U_CATAPHRACT, $spawn1_60),
-    //     array("60 Woad Raider", U_WOAD_RAIDER, $spawn1_60),
-    //     array("60 Chu Ko Nu", U_LONGBOWMAN, $spawn1_60),
-    //     array("60 Throwing Axeman", U_THROWING_AXEMAN, $spawn1_60),
-    //     array("60 Huskarl", U_HUSKARL, $spawn1_60),
-    //     //array("60 Samurai", U_SAMURAI, $spawn1_60),
-    //     array("60 Mangudai", U_MANGUDAI, $spawn1_60),
-    //     array("30 War Elephant", U_WAR_ELEPHANT, $spawns3_30),
-    //     array("60 Mameluke", U_MAMELUKE, $spawn1_60),
-    //     array("60 Teutonic Knight", U_TEUTONIC_KNIGHT, $spawn1_60),
-    //     array("60 Janissary", U_JANISSARY, $spawn1_60),
-    //     //array("60 Berserk", U_BERSERK, $spawn1_60),
-    //     array("60 Jaguar Warrior", U_JAGUAR_WARRIOR, $spawn1_60),
-    //     array("60 Tarkan", U_TARKAN, $spawn1_60),
-    //     array("60 War Wagon", U_WAR_WAGON, $spawn1_60),
-    //     array("60 Plumed Archer", U_PLUMED_ARCHER, $spawn1_60),
-    //     array("60 Conquistador", U_CONQUISTADOR, $spawn1_60)
-    // ];
-    
-    // $spawns100 = Spawn_Box(array(4, $SPAWN_CENTER_X), array(13, 71));
-    // // big spawn
-    // $spawnsB_5 = Spawn_Box(array(7, $SPAWN_CENTER_X+13), array(11, $SPAWN_CENTER_X+13));
 
-
-    class UnitSpawn {
-        public $unitId;
-        public $unitCount;
+    $csvData = file_get_contents('C:\Code\AOE_Wave_Survival\Data\unitStats.csv');
+    $lines = explode(PHP_EOL, $csvData);
+    $UNIT_STAT_MAP = array();
+    foreach ($lines as $line) {
+        $raw = str_getcsv($line);
+        $name = $raw[1];
+        $createTime = $raw[2];
+        $foodCost = $raw[5];
+        $woodCost = $raw[6];
+        $goldCost = $raw[7];
+        $unitStat = new UnitStats($foodCost, $woodCost, $goldCost, $createTime);
+        $UNIT_STAT_MAP[$name] = $unitStat;
     }
-
-    class Wave {
-        public $time;
-        public $units;
-    }
-
+    //print_r($UNIT_STAT_MAP);
 
     $UNITS = array(
         [30, array([U_MILITIA, 1])],
@@ -155,10 +142,65 @@
         [60, array([U_PALADIN, 30], [U_CHAMPION, 30], [U_PALADIN, 30])],
     );
 
+    $UNITS_NEW = array(
+        [30, array([U_MILITIA, 1])],
+        [60, array([U_MILITIA, 3])],
+        [60, array([U_MILITIA, 5])],
+        [90, array([U_MILITIA, 7], [U_BATTERING_RAM, 3])]
+    );
 
-    //print(count($UNITS));
-    $BANNED_BUILDINGS = [U_VILLAGER_F, U_VILLAGER_M, U_BLACKSMITH, U_MARKET, U_UNIVERSITY, U_MONASTERY, U_WATCH_TOWER, U_HOUSE];
-    
+    class UnitSpawn {
+        public $unitId;
+        public $unitCount;
+        public $unitName;
+        public $unitStats;
+
+        public function __construct($unitId, $unitCount) {
+            $this->unitId =  $unitId;
+            $this->unitCount =  $unitCount;
+            $this->unitName = unitNameById($unitId);
+            //print_r($GLOBALS['UNIT_STAT_MAP'][$this->unitName]);
+            $this->unitStats = $GLOBALS['UNIT_STAT_MAP'][$this->unitName];
+            if ($this->unitStats == null) {
+                print("\n no stat for name: {$this->unitName}\n");
+            }
+        }
+    }
+
+    class SpawnRound {
+        public $roundTime;
+        public $unitSpawnList;
+
+        public function __construct($raw) {
+            $this->roundTime = $raw[0];
+            $this ->unitSpawnList = array_map(function($unitRaw) {
+                $unitId = $unitRaw[0];
+                $unitCount = $unitRaw[1];
+                return new UnitSpawn($unitId, $unitCount);
+            }, (array)$raw[1]);
+        }
+    }
+
+    $yeetFeet = array_map(function ($raw) {
+        return new SpawnRound($raw);
+    }, $UNITS_NEW);
+    print_r($yeetFeet);
+
+    foreach($yeetFeet as $yeet) {
+        // $vilTime = $yeet->getComputedVillagerTime();
+        // $count = 
+        // $result = array(
+        //     "Total villager time" => $this->nextTime - $this->time,
+        //     "Required Villager Time" => $vilTime,
+        //     "UnitName" => $stat->unitName,
+        //     "UnitCount" => $stat->unitCount,
+        // );
+        // if ($vilTime > 0) {
+        //     //print_r($result);
+        //     print("\n");
+        // }
+    }
+
     // array of entitys and spawn numbers, and a time of round
     $game_modes = array(
         array(
@@ -252,6 +294,32 @@
     ];
 
     
+    // must be size 16 for current use in random generator
+    // $unique_spawn_data = [
+    //     array("60 Longbowman", U_LONGBOWMAN, $spawn1_60),
+    //     array("60 Cataphract", U_CATAPHRACT, $spawn1_60),
+    //     array("60 Woad Raider", U_WOAD_RAIDER, $spawn1_60),
+    //     array("60 Chu Ko Nu", U_LONGBOWMAN, $spawn1_60),
+    //     array("60 Throwing Axeman", U_THROWING_AXEMAN, $spawn1_60),
+    //     array("60 Huskarl", U_HUSKARL, $spawn1_60),
+    //     //array("60 Samurai", U_SAMURAI, $spawn1_60),
+    //     array("60 Mangudai", U_MANGUDAI, $spawn1_60),
+    //     array("30 War Elephant", U_WAR_ELEPHANT, $spawns3_30),
+    //     array("60 Mameluke", U_MAMELUKE, $spawn1_60),
+    //     array("60 Teutonic Knight", U_TEUTONIC_KNIGHT, $spawn1_60),
+    //     array("60 Janissary", U_JANISSARY, $spawn1_60),
+    //     //array("60 Berserk", U_BERSERK, $spawn1_60),
+    //     array("60 Jaguar Warrior", U_JAGUAR_WARRIOR, $spawn1_60),
+    //     array("60 Tarkan", U_TARKAN, $spawn1_60),
+    //     array("60 War Wagon", U_WAR_WAGON, $spawn1_60),
+    //     array("60 Plumed Archer", U_PLUMED_ARCHER, $spawn1_60),
+    //     array("60 Conquistador", U_CONQUISTADOR, $spawn1_60)
+    // ];
+    
+    // $spawns100 = Spawn_Box(array(4, $SPAWN_CENTER_X), array(13, 71));
+    // // big spawn
+    // $spawnsB_5 = Spawn_Box(array(7, $SPAWN_CENTER_X+13), array(11, $SPAWN_CENTER_X+13));
+
     //    array("Imperial Seige, Siege Engineers", 500, array(T_IMPERIAL_AGE),
     //            array(T_HEAVY_SCORPION, T_ONAGER, T_CAPPED_RAM, T_SIEGE_ENGINEERS), "", array(34, 52)),
     //    array("Post-Imperial Seige", 500, array(T_IMPERIAL_AGE, T_SIEGE_ENGINEERS),

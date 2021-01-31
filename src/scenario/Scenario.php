@@ -1,11 +1,8 @@
 <?php
-spl_autoload_register(function ($class_name) {
-    include $class_name . '.php';
-});
 function Scenario($serial) {
     global $DEBUG;
     $DEBUG = true;
-
+    print('yah noi');
     function wallAreas($areas) {
         $maxAtX = [];
         $minAtX = [];

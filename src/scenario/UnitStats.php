@@ -40,5 +40,10 @@ class UnitStats {
             + $this->woodCount * $this->WOOD_GATHER_RATE 
             + $this->goldCount * $this->GOLD_GATHER_RATE;
     }
+
+    public function __debugInfo()
+    {
+        return json_decode(json_encode($this), true);
+    }
 }
 ?>
