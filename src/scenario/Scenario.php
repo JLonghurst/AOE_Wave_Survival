@@ -2,7 +2,6 @@
 function Scenario($serial) {
     global $DEBUG;
     $DEBUG = true;
-    print('yah noi');
     function wallAreas($areas) {
         $maxAtX = [];
         $minAtX = [];

@@ -13,7 +13,6 @@ class Tech extends PlayerRegion {
     public $row = 0;
     public $positionIndex;
 
-
     function __construct($relicName, $unitId, $costs) {
         $this->relicName = $relicName;
         $this->unitId = $unitId;
@@ -32,7 +31,7 @@ class Tech extends PlayerRegion {
         return "$relicName $index";
     }
 
-    function placeAtLocation($location, $triggerName) {
+    function placeAtLocation(Point $location, $triggerName) {
         // give meaningful relicNames to data array
         // x is offset by 2 on map
         // lan    $Length_Xs are 2

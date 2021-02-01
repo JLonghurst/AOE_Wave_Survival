@@ -1,5 +1,6 @@
 <?php
 class UnitStats {
+    // units: food / vil*sec
     private $FOOD_GATHER_RATE = 0.33;
     private $GOLD_GATHER_RATE = 0.359;
     private $WOOD_GATHER_RATE = 0.388;
@@ -33,7 +34,7 @@ class UnitStats {
      * returns a float representing the ammount of villager
      * time is require to create the unit
      *
-     * @return float
+     * @return float units: vil/sec
      */
     function getComputedVillagerTime() {
         return $this->foodCount * $this->FOOD_GATHER_RATE 

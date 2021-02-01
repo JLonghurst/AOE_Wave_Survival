@@ -93,7 +93,7 @@
         [60, array([U_MILITIA, 5])],
         [90, array([U_MILITIA, 7], [U_BATTERING_RAM, 3])],
 
-        "Feudal Upgrade",
+        //"Feudal Upgrade",
 
         [60, array([U_ARCHER, 5])],
         [60, array([U_SCOUT_CAVALRY, 5])],
@@ -104,7 +104,7 @@
         [60, array([U_KNIGHT, 5])],
  
         //CASTLE
-        "Castle Upgrade",
+        //"Castle Upgrade",
 
         [60, array([U_CROSSBOWMAN, 20])],
         [60, array([U_KNIGHT, 15])],
@@ -124,7 +124,7 @@
         
         // IMPERIAL
 
-        "Imperial Upgrade",
+        //"Imperial Upgrade",
 
         [60, array([U_HUSSAR, 30], [U_TREBUCHET_P, 5])],
         [60, array([U_CAVALIER, 60])],
@@ -148,97 +148,16 @@
         [90, array([U_MILITIA, 7], [U_BATTERING_RAM, 3])]
     );
 
-    class UnitSpawn {
-        public $unitId;
-        public $unitCount;
-        public $unitName;
-        public UnitStats $unitStats;
-
-        public function __construct($unitId, $unitCount) {
-            $this->unitId =  $unitId;
-            $this->unitCount =  $unitCount;
-            $this->unitName = unitNameById($unitId);
-            $this->unitStats = $GLOBALS['UNIT_STAT_MAP'][$this->unitName];
-            if ($this->unitStats == null) {
-                print("\n no stat for name: {$this->unitName}\n");
-            }
-        }
-
-        public function getName() {
-            return "{$this->unitCount} {$this->unitName}";
-        }
-
-        public function getProductionRequirement() {
-            return $this->unitStats->createTime * $this->unitCount;
-        }
-    }
-
-    class SpawnRound {
-        public $roundTime;
-        public array $unitSpawnList;
-
-        public function __construct($raw) {
-            $this->roundTime = $raw[0];
-            $this ->unitSpawnList = array_map(function($unitRaw) {
-                $unitId = $unitRaw[0];
-                $unitCount = $unitRaw[1];
-                return new UnitSpawn($unitId, $unitCount);
-            }, (array)$raw[1]);
-        }
-
-        public function getRoundName() {
-            $roundName = '';
-            foreach($this->unitSpawnList as $i => $unitSpawn) {
-                if ($i != 0) $roundName .= ', ';
-                $roundName .= $unitSpawn->getName();
-            }
-            return $roundName;
-        }
-
-        public function getTotalComputedVillagerTime() {
-            $total = 0;
-            foreach($this->unitSpawnList as $unitSpawn) {
-                $total += 
-                    $unitSpawn->unitStats->getComputedVillagerTime() 
-                    * $unitSpawn->unitCount;
-            }
-            return $total;
-        }
-
-        public function getProductionTime() {
-            $totalProductionTime = 0;
-            foreach($this->unitSpawnList as $unitSpawn) {
-                $totalProductionTime += 
-                    $unitSpawn->unitStats->createTime;
-            }
-            return $totalProductionTime;
-        }
-
-        public function printStats() {
-            $total_vil_time = $this->getTotalComputedVillagerTime(); 
-            $total_production_time = $this->getProductionTime();
-            $result = array(
-                "Round Time" => $this->roundTime,
-                "Units" => $this->getRoundName(),
-                "Total Vil Time" => $total_vil_time,
-                "Total Production Times" => $total_production_time,
-                "Vil Time Per Second" => $total_vil_time / $this->roundTime,
-                "Production Time Per Second" => $total_production_time / $this->roundTime,
-                // "UnitName" => $stat->unitName,
-                // "UnitCount" => $stat->unitCount,
-            );
-            print_r($result);
-            print("\n");
-        }
-    }
-
     $yeetFeet = array_map(function ($raw) {
         return new SpawnRound($raw);
-    }, $UNITS_NEW);
+    }, $UNITS);
 
-    foreach($yeetFeet as $spawnRound) {
-        $spawnRound->printStats();
+    $fp = fopen('Data/roundStats.csv', 'w');
+    fputcsv($fp, array_keys($yeetFeet[0]->getStats()));
+    foreach ($yeetFeet as $spawnRound) {
+        fputcsv($fp, $spawnRound->getStats());
     }
+    fclose($fp);
 
     // array of entitys and spawn numbers, and a time of round
     $game_modes = array(
