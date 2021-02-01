@@ -1,15 +1,13 @@
 <?php
 class SpawnRound {
+    public $age;
     public $roundTime;
     public array $unitSpawnList;
 
-    public function __construct($raw) {
-        $this->roundTime = $raw[0];
-        $this ->unitSpawnList = array_map(function($unitRaw) {
-            $unitId = $unitRaw[0];
-            $unitCount = $unitRaw[1];
-            return new UnitSpawn($unitId, $unitCount);
-        }, (array)$raw[1]);
+    public function __construct($age, $roundTime, $unitSpawnList) {
+        $this->age = $age;
+        $this->roundTime = $roundTime;
+        $this->unitSpawnList = $unitSpawnList;
     }
 
     public function getRoundName() {

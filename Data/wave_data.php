@@ -141,20 +141,37 @@
         [60, array([U_PALADIN, 30], [U_CHAMPION, 30], [U_PALADIN, 30])],
     );
 
-    $UNITS_NEW = array(
-        [30, array([U_MILITIA, 1])],
-        [60, array([U_MILITIA, 3])],
-        [60, array([U_MILITIA, 5])],
-        [90, array([U_MILITIA, 7], [U_BATTERING_RAM, 3])]
+    $UNITS_MODEL = array(
+        new SpawnRound(
+            T_DARK_AGE, 
+            30,
+            array(new UnitSpawn(U_MILITIA, 1))
+        ),
+        new SpawnRound(
+            T_DARK_AGE, 
+            60,
+            array(new UnitSpawn(U_MILITIA, 3))
+        ),
+        new SpawnRound(
+            T_DARK_AGE, 
+            60,
+            array(new UnitSpawn(U_MILITIA, 5))
+        ),
+        new SpawnRound(
+            T_DARK_AGE, 
+            60,
+            array(new UnitSpawn(U_MILITIA, 5), new UnitSpawn(U_BATTERING_RAM, 3))
+        ),
+        new SpawnRound(
+            T_FEUDAL_AGE, 
+            60,
+            array()
+        ),
     );
-
-    $yeetFeet = array_map(function ($raw) {
-        return new SpawnRound($raw);
-    }, $UNITS);
-
+    //print_r($UNITS_MODEL);
     $fp = fopen('Data/roundStats.csv', 'w');
-    fputcsv($fp, array_keys($yeetFeet[0]->getStats()));
-    foreach ($yeetFeet as $spawnRound) {
+    fputcsv($fp, array_keys($UNITS_MODEL[0]->getStats()));
+    foreach ($UNITS_MODEL as $spawnRound) {
         fputcsv($fp, $spawnRound->getStats());
     }
     fclose($fp);
@@ -250,7 +267,6 @@
             U_STABLE
         ),
     ];
-
     
     // must be size 16 for current use in random generator
     // $unique_spawn_data = [

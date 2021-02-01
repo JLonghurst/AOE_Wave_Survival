@@ -9,7 +9,6 @@ class UnitStats {
     public $woodCount;
     public $goldCount;
     public $createTime;
-    public $unitName;
 
     /**
      * Creates a new unit statstic

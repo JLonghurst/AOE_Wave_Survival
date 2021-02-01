@@ -1,7 +1,5 @@
 <?php
 class EnemySpawnZone extends PlayerRegion {
-
-
     function render() {
         parent::render();
         $this->killZoneTriggers();
