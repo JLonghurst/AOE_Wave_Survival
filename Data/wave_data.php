@@ -160,7 +160,10 @@
         new SpawnRound(
             T_DARK_AGE, 
             60,
-            array(new UnitSpawn(U_MILITIA, 5), new UnitSpawn(U_BATTERING_RAM, 3))
+            array(
+                new UnitSpawn(U_MILITIA, 5), 
+                new UnitSpawn(U_BATTERING_RAM, 3)
+            )
         ),
         new SpawnRound(
             T_FEUDAL_AGE, 

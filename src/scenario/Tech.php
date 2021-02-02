@@ -43,7 +43,7 @@ class Tech extends PlayerRegion {
         $size = count($this->costs);
 
         // one time event
-        Trig(uniqid());
+        $this->trig(uniqid());
             $this->act($this->getNameIndexString($this->relicName, 0));
             $this->createGaia(U_RELIC, $relicLocation);
             $this->createGaia(U_HAY_STACK, $blockLocation);
@@ -55,27 +55,25 @@ class Tech extends PlayerRegion {
                 Cond_Timer(2); // debounce the last purchase
                 Cond_Accumulate($this->playerId, $cost, R_STONE_STORAGE);
                 Cond_InAreaU($this->playerId, 1, $this->unitId, $killLocation->asArr());
-                Efft_KillO($this->playerId, $killLocation->asArr());
                 Efft_Tribute($this->playerId, $cost, R_STONE_STORAGE, 0);
+                Efft_KillO($this->playerId, $killLocation->asArr());
                 $this->chat("<YELLOW> Bought {$this->relicName} for {$cost} stone");
                 Efft_Act($triggerName);
-
             // place down for another round if it exists
             if ($i != $size - 1) 
                 $this->act($this->getNameIndexString($this->relicName, $i + 1));
         }
-        Trig(uniqId());
+        $this->trig(uniqId());
             /// will place wall over blocked location
             $this->createInArea($this->WALL_MATERIAL, AreaSet($unitLocation->asArr()), 0);
             $this->createInArea($this->WALL_MATERIAL, AreaSet($killLocation->asArr()), 0);
             Efft_RemoveO(0, $killLocation->asArr());
         
-        Trig(uniqid());
-            if (is_array($this->requirements))
-                foreach ($this->requirements as $req) 
-                    Cond_Researched($this->playerId, $req);
-            Efft_RemoveO(0, $blockLocation->asArr());
-            
+        $this->trig(uniqid());
+        if (is_array($this->requirements))
+            foreach ($this->requirements as $req)
+                Cond_Researched($this->playerId, $req);
+        Efft_RemoveO(0, $blockLocation->asArr());
     }
 }
 ?>

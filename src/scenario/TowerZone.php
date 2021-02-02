@@ -16,6 +16,12 @@ class TowerZone extends PlayerRegion {
     function render() {
         parent::render();
         $tcLoc = $this->getCenter()->offset(0, 9);
+        $unitLoc = $this->getCenter()->offset($UNIT_OFFSET)->asArr();
+        $this->trig("Enemy Placement");
+            Efft_Create($this->getEnemyId(), U_MILITIA, $unitLoc);
+        $this->trig("Enemy Kill");
+            Cond_Timer(2);
+            Efft_KillU($this->getEnemyId(), U_MILITIA, $unitLoc);
 
         $this->setTowerElevation();
         $this->trig("Enemy Town Center Invincible", 1, 1);
@@ -27,32 +33,24 @@ class TowerZone extends PlayerRegion {
             Efft_ChangeView($this->playerId, $this->getCenter()->asArr());
             $this->act("Tower Death");
 
-        $unitLoc = $this->getCenter()->offset($UNIT_OFFSET)->asArr();
-        $this->trig("Enemy Placement");
-            Efft_Create($this->getEnemyId(), U_MILITIA, $unitLoc);
-        $this->trig("Enemy Kill");
-            Cond_Timer(2);
-            Efft_KillU($this->getEnemyId(), U_MILITIA, $unitLoc);
-
-        $this->trig("Tower Death", 0, 0, 1, "111", "Do not let your tower be destroyed by the enemyId buildings");
+        $this->trig("Tower Death",  0, 0, 1, "111", "Do not let your tower be destroyed by the enemyId buildings");
             Cond_Timer(3);
             Cond_NotOwnU($this->playerId, 1, U_WATCH_TOWER);
             $this->chat("<RED> You lost your tower! gg fam");
             Efft_Display(10, 0, "<RED> You lost your tower! gg fam");
             Efft_Display(10, 1, "<RED> You lost your tower! gg fam");
             Efft_Display(10, 2, "<RED> You lost your tower! gg fam");
-            $this->act("End Game Chat 1");
-            $this->act("End Game Chat 2");
-        $this->trig("End Game Chat 1", 0);
-            Cond_Timer(5);
-            $this->chat(26);
-        $this->trig("End Game Chat 2", 0);
-            Cond_Timer(5);
-            $this->chat(27);
-            $this->act("Game Over");
-        $this->trig("Game Over", 0);
-            Cond_Timer(6);
-            Efft_DeclareVictory($this->getEnemyId());
+            $this->runTrigger("End Game Chat 1", function($yahBoi) {
+                Cond_Timer(5);
+                $this->runTrigger("End Game Chat 2", function () {
+                    Cond_Timer(5);
+                    $this->chat(27);
+                    $this->runTrigger("Game Over", function() {
+                        Cond_Timer(6);
+                        Efft_DeclareVictory($this->getEnemyId());
+                    });
+                });
+            });
     }
 
     private function setTowerElevation() {

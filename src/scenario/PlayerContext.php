@@ -11,11 +11,12 @@ class PlayerContext {
     }
 
     public function getName($objectName) {
-        return "{$this->playerId}: $objectName";
+        return "$objectName P{$this->playerId}";
     }
 
     public function trig($triggerName, $S = 1, $L = 0, $P = 0, $E = 0, $D = '', $R = '') {
         $triggerName = $this->getName($triggerName);
+        print($triggerName."\n");
         Trig($triggerName, $S, $L, $P, $E, $D, $R);
         return $triggerName;
     }
@@ -26,6 +27,14 @@ class PlayerContext {
 
     public function act($triggerName) {
         Efft_Act($this->getName($triggerName));
+    }
+
+    public function runTrigger($name, $triggerFunction) {
+        print($name);
+        Efft_Act($name);
+        Trig($name, 0);
+        // run the code of the trigger
+        $triggerFunction($this);
     }
 
     public function chat($text) {
