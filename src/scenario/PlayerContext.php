@@ -2,6 +2,8 @@
 class PlayerContext {
     public $playerId;
 
+    public $DEBUG_CONTEXT = true;
+
     function __construct($playerId) {
         $this->playerId = $playerId;
     }
@@ -16,7 +18,7 @@ class PlayerContext {
 
     public function trig($triggerName, $S = 1, $L = 0, $P = 0, $E = 0, $D = '', $R = '') {
         $triggerName = $this->getName($triggerName);
-        print($triggerName."\n");
+        if ($this->DEBUG_CONTEXT) print($triggerName."\n");
         Trig($triggerName, $S, $L, $P, $E, $D, $R);
         return $triggerName;
     }
@@ -29,12 +31,14 @@ class PlayerContext {
         Efft_Act($this->getName($triggerName));
     }
 
-    public function runTrigger($name, $triggerFunction) {
-        print($name);
-        Efft_Act($name);
-        Trig($name, 0);
-        // run the code of the trigger
-        $triggerFunction($this);
+    public function runTrigger($name, $triggerFunction, $delayTime = 0) {
+        $triggerName = $this->getName($name);
+        if ($this->DEBUG_CONTEXT) print($triggerName."\n");
+        Efft_Act($triggerName);
+        Trig($triggerName, 0);
+            Cond_Timer($delayTime);
+            // run the code of the trigger
+            $triggerFunction();
     }
 
     public function chat($text) {

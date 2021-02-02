@@ -40,11 +40,11 @@ class TowerZone extends PlayerRegion {
             Efft_Display(10, 0, "<RED> You lost your tower! gg fam");
             Efft_Display(10, 1, "<RED> You lost your tower! gg fam");
             Efft_Display(10, 2, "<RED> You lost your tower! gg fam");
-            $this->runTrigger("End Game Chat 1", function($yahBoi) {
+            $this->runTrigger("End Game Chat 1", function() {
                 Cond_Timer(5);
                 $this->runTrigger("End Game Chat 2", function () {
                     Cond_Timer(5);
-                    $this->chat(27);
+                    $this->chat('27');
                     $this->runTrigger("Game Over", function() {
                         Cond_Timer(6);
                         Efft_DeclareVictory($this->getEnemyId());
@@ -64,14 +64,19 @@ class TowerZone extends PlayerRegion {
 
     private function towerExplosionTrigger($triggerName) {
         Trig($triggerName, 0);
-        for ($i = 1; $i < $this->TOWER_HILL_OFFSET - 1; $i++)
-            foreach (AreaPts(AreaSet($this->getCenter()->asArr(), $i)) as $p) {
-                Efft_KillO($this->getEnemyId(), $p);
-                Efft_ChangeView(1, $this->getCenter()->asArr());
-                // explosion animation
-                Efft_Create(0, U_MACAW, $p);
-                Efft_KillU(0, U_MACAW, $p);
+        Efft_ChangeView(1, $this->getCenter()->asArr());
+        $this->runTrigger("Tower Explode Trigger", function() {
+            $center = $this->getCenter()->asArr();
+            for ($i = 1; $i < $this->TOWER_HILL_OFFSET - 1; $i++) {
+                foreach (AreaPts(AreaSet($center, $i)) as $pt) {
+                    // kill all enemy units
+                    Efft_KillO($this->getEnemyId(), $pt);
+                    // explosion animation
+                    Efft_Create(0, U_MACAW, $pt);
+                    Efft_KillU(0, U_MACAW, $pt);
+                }
             }
+        }, 2);
     }
 
     public function placeStoreTriggersAt($storeOrigin) {
