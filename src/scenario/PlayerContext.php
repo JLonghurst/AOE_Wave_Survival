@@ -2,7 +2,7 @@
 class PlayerContext {
     public $playerId;
 
-    public $DEBUG_CONTEXT = true;
+    public $DEBUG_CONTEXT = false;
 
     function __construct($playerId) {
         $this->playerId = $playerId;

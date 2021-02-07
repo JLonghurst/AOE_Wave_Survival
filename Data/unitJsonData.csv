@@ -1,0 +1,137 @@
+Militia,60,0,20,21
+Man-at-arms,60,0,20,21
+"Long Swordsman",60,0,20,21
+"Two-handed Swordsman",60,0,20,21
+Champion,60,0,20,21
+Spearman,35,25,0,22
+Pikeman,35,25,0,22
+Halberdier,35,25,0,22
+"Eagle Warrior",20,0,50,35
+"Elite Eagle Warrior",20,0,50,20
+Archer,0,25,45,35
+Crossbowman,0,25,45,27
+Arbalest,0,25,45,27
+"Cavalry Archer",0,40,60,34
+"Heavy Cavalry Archer",0,40,60,27
+"Hand Cannoneer",45,0,50,34
+Skirmisher,25,35,0,22
+"Elite Skirmisher",25,35,0,22
+"Scout Cavalry",80,0,0,30
+"Light Cavalry",80,0,0,30
+Hussar,80,0,0,30
+Knight,60,0,75,30
+Cavalier,60,0,75,30
+Paladin,60,0,75,30
+Camel,55,0,60,22
+"Heavy Camel",55,0,60,22
+Mangonel,0,160,135,46
+Onager,0,160,135,46
+"Siege Onager",0,160,135,46
+Scorpion,0,75,75,30
+"Heavy Scorpion",0,75,75,30
+"Battering Ram",0,160,75,36
+"Capped Ram",0,160,75,36
+"Siege Ram",0,160,75,36
+"Bombard Cannon",0,225,225,56
+"Trebuchet (packed)",0,200,200,50
+Petard,65,0,20,25
+King,50,0,0,30
+Berserk,65,0,25,14
+"Elite Berserk",65,0,25,14
+Cataphract,70,0,75,20
+"Elite Cataphract",70,0,75,20
+"Chu Ko Nu",0,40,35,16
+"Elite Chu Ko Nu",0,40,35,13
+Conquistador,60,0,70,24
+"Elite Conquistador",60,0,70,24
+Huskarl,52,0,26,16
+"Elite Huskarl",52,0,26,16
+"Jaguar Warrior",60,0,30,17
+"Elite Jaguar Warrior",60,0,30,17
+Janissary,60,0,55,17
+"Elite Janissary",60,0,55,17
+Longbowman,0,35,40,18
+"Elite Longbowman",0,35,40,18
+Mameluke,55,0,85,23
+"Elite Mameluke",55,0,85,23
+Mangudai,0,55,65,26
+"Elite Mangudai",0,55,65,26
+"Plumed Archer",0,40,40,16
+"Elite Plumed Archer",0,35,35,16
+Samurai,60,0,30,9
+"Elite Samurai",60,0,30,9
+Tarkan,60,0,60,14
+"Elite Tarkan",60,0,60,14
+"Teutonic Knight",85,0,40,12
+"Elite Teutonic Knight",85,0,40,12
+"Throwing Axeman",55,0,25,17
+"Elite Throwing Axeman",55,0,25,17
+"War Elephant",200,0,75,31
+"Elite War Elephant",200,0,75,31
+"War Wagon",0,110,60,21
+"Elite War Wagon",0,110,60,21
+"Woad Raider",65,0,25,10
+"Elite Woad Raider",65,0,25,10
+"Fishing Ship",0,75,0,40
+"Trade Cog",0,100,50,36
+"Transport Ship",0,125,0,45
+Galley,0,90,30,60
+"War Galley",0,90,30,36
+Galleon,0,90,30,36
+"Fire Ship",0,75,45,36
+"Fast Fire Ship",0,75,45,36
+"Demolition Ship",0,70,50,31
+"Heavy Demolition Ship",0,70,50,31
+"Cannon Galleon",0,200,150,46
+"Elite Cannon Galleon",0,200,150,46
+Longboat,0,85,43,25
+"Elite Longboat",0,80,40,25
+"Turtle Ship",0,180,180,50
+"Elite Turtle Ship",0,180,180,50
+Villager,50,0,0,25
+Monk,0,0,100,51
+Missionary,0,0,100,51
+"Trade Cart",0,100,50,50
+Kamayuk,60,0,30,10
+"Elite Kamayuk",60,0,30,10
+Slinger,30,0,40,25
+"Elephant Archer",100,0,80,25
+"Elite Elephant Archer",100,0,80,25
+"Imperial Camel",55,0,60,20
+"Genoese Crossbowman",45,0,45,22
+"Elite Genoese Crossbowman",45,0,45,19
+Condottiero,50,0,35,18
+"Magyar Huszar",80,0,10,16
+"Elite Magyar Huszar",80,0,10,16
+Boyar,50,0,80,23
+"Elite Boyar",50,0,80,20
+"Organ Gun",0,80,60,21
+"Elite Organ Gun",0,80,60,21
+"Eagle Scout",20,0,50,60
+"Eagle Scout",20,0,50,35
+Caravel,0,90,40,36
+"Elite Caravel",0,90,40,36
+"Shotel Warrior",50,0,35,8
+"Elite Shotel Warrior",50,0,35,8
+Gbeto,50,0,40,17
+"Elite Gbeto",50,0,40,17
+"Camel Archer",0,50,60,21
+"Elite Camel Archer",0,50,60,21
+"Siege Tower",0,200,160,36
+"Fire Galley",0,75,45,60
+"Demolition Raft",0,70,50,45
+Genitour,50,35,0,25
+"Elite Genitour",50,35,0,23
+Tarkan,60,0,60,21.7
+"Elite Tarkan",60,0,60,20
+"Imperial Skirmisher",25,35,0,22
+"Battle Elephant",120,0,70,28
+"Elite Battle Elephant",120,0,70,28
+Arambai,0,80,60,21
+"Elite Arambai",0,80,60,21
+"Ballista Elephant",100,0,80,25
+"Elite Ballista Elephant",100,0,80,25
+"Karambit Warrior",30,0,15,6
+"Elite Karambit Warrior",30,0,15,6
+"Rattan Archer",0,50,45,16
+"Elite Rattan Archer",0,50,45,16

@@ -1,14 +1,20 @@
 <?php
 class EnemySpawnZone extends PlayerRegion {
+    private $ENEMY_TC_OFFSET = -4;
+
     function render() {
         parent::render();
         $this->killZoneTriggers();
         $time = 0;
         $this->trig("Enemy Town Center");
             Efft_RemoveO($this->getEnemyId());
-            $this->create(U_TOWN_CENTER, $this->origin->offset(-4), $this->getEnemyId());
-        $this->trig("Enemy Control", 1, 1);
-            Efft_PatrolO($this->getEnemyId(), $this->getArea(), $this->origin->offset(50)->asArr());
+            $this->create(
+                U_TOWN_CENTER, 
+                $this->origin->offset($this->ENEMY_TC_OFFSET), 
+                $this->getEnemyId()
+            );
+        // $this->trig("Enemy Control", 1, 1);
+        //     Efft_PatrolO($this->getEnemyId(), $this->getArea(), $this->origin->offset(50)->asArr());
         
         $waves = array();
         foreach($GLOBALS['UNITS'] as $i => $roundUnits) {
