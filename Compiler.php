@@ -2,6 +2,7 @@
 spl_autoload_register(function ($class_name) {
 	include 'src/scenario/' . $class_name . '.php';
 	include 'src/models/' . $class_name . '.php';
+	include 'src/Data/' . $class_name . '.php';
 });
 
 SCX::$microtime = microtime(true);
