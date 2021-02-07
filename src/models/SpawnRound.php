@@ -63,10 +63,12 @@ class SpawnRound {
             "Total Production Times" => $this->getTotalProductionTime(),
             //"Vil Time Per Second" => $this->getVilTimePerSecond(),
             //"Production Time Per Second" => $this->getProductionTimePerSecond(),
-            "Production Deficit" => $this->getTotalProductionTime() - $this->roundTime,
             // "UnitName" => $stat->unitName,
             // "UnitCount" => $stat->unitCount,
         );
+        for ($i = 1; $i < 4; $i++) {
+            $result["Prod Deficit $i"] = $this->getTotalProductionTime() - $this->roundTime*$i;
+        }
         //print_r($result);
         //print("\n");
         return $result;
