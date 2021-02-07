@@ -6,16 +6,6 @@ class EnemySpawnZone extends PlayerRegion {
         parent::render();
         $this->killZoneTriggers();
         $time = 0;
-        $this->trig("Enemy Town Center");
-            Efft_RemoveO($this->getEnemyId());
-            $this->create(
-                U_TOWN_CENTER, 
-                $this->origin->offset($this->ENEMY_TC_OFFSET), 
-                $this->getEnemyId()
-            );
-        // $this->trig("Enemy Control", 1, 1);
-        //     Efft_PatrolO($this->getEnemyId(), $this->getArea(), $this->origin->offset(50)->asArr());
-        
         $waves = array();
         foreach($GLOBALS['UNITS'] as $i => $roundUnits) {
             if (is_array($roundUnits)) {
@@ -66,15 +56,72 @@ class EnemySpawnZone extends PlayerRegion {
                 Efft_Research($pId, $age);
             }
         }
-        foreach($waves as $i => $wave)
-            $wave->setOrigin($this->origin->offset(-$i));
-        for ($i = 0; $i < count($waves) - 2; $i++) {
-            $waves[$i]->nextTime = $waves[$i+1]->time;
-            $waves[$i]->nextUnits = $waves[$i+1]->units;
+        $spawnCenter = $this->origin;
+
+        $spawnRounds = $GLOBALS['UNITS_MODEL'];
+
+        $roundName = $spawnRounds[0]->getRoundName();
+        $totalTime = 0;
+        $this->trig("1: $roundName");
+        for ($roundIndex = 0; $roundIndex < count($spawnRounds); $roundIndex++) {
+            $roundNumber = $roundIndex + 1;
+            $spawnRound = $spawnRounds[$roundIndex];
+            $spawnCenter = $spawnCenter->offset(-$i);
+
+            $totalTime += $spawnRound->roundTime;
+            $roundName = $spawnRound->getRoundName();
+            //$this->trig($roundName, 1, 0);
+            // make the time +1 so the time alligns properly
+            Cond_Timer($spawnRound->roundTime + 1);
+            // give the play goodies
+            Efft_Give($this->playerId, $spawnRound->payment, STONE);
+            $this->chat("<GREEN> {$spawnRound->payment} stone for round advancement");
+            // spawn the rounds units
+            foreach($spawnRound->unitSpawnList as $i => $unitSpawn) {
+                $unitSize = $unitSpawn->unitCount;
+                while($unitSize > 0) {
+                    $spawnArea = AreaAdvanced(
+                        $this->origin->offset(-$this->depth + 2 + $i)->asArr(), 
+                        $this->orientation, 
+                        $unitSize % $this->width,
+                        1
+                    );
+                    $this->createInArea($unitSpawn->unitId, $spawnArea, $this->getEnemyId());
+                    $unitSize -= $this->width;
+                    $i++;
+                }
+            }
+            $nextRound = $spawnRounds[$roundIndex + 1];
+            if ($nextRound) {
+                $nextRoundTime = $totalTime + $nextRound->roundTime;
+                $timeString = $this->getTimeString($nextRoundTime);
+                $nextName = $nextRound->getRoundName();
+                $nextNum = $roundNumber + 1;
+                Efft_Display($nextRoundTime, 0, 
+                    "<RED>Round {$roundNumber}: {$roundName}\n\n" .
+                    "Round $nextNum begins at $timeString " .
+                    "in $nextRound->roundTime seconds.\n\nNext: $nextName"
+                );
+                $nextTriggerName = "$nextNum: $nextName";
+                $this->act($nextTriggerName);
+                $this->trig($nextTriggerName, 0);
+                // age up the age if the age is different
+                if ($spawnRound->age != $nextRound->age) {
+                    $eId = $this->getEnemyId();
+                    $pId = $this->playerId;
+                    Efft_Research($pId, $nextRound->age);
+                    Efft_Research($eId, $nextRound->age);
+                }
+            }
         }
-        foreach($waves as $wave) {
-            $wave->renderWave();
-        }
+    }
+
+    private function getTimeString($roundSeconds) {
+        $nextMin = floor($roundSeconds / 60);
+        $nextSec = $roundSeconds % 60;
+        $nextMin = $nextMin < 10 ? "0{$nextMin}" : $nextMin;
+        $nextSec = $nextSec < 10 ? "0{$nextSec}" : $nextSec;
+        return "$nextMin:$nextSec";
     }
 
     private function killZoneTriggers() {

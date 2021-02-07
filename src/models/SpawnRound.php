@@ -2,10 +2,12 @@
 class SpawnRound {
     public $age;
     public $roundTime;
+    public $payment;
     public array $unitSpawnList;
 
-    public function __construct($age, $roundTime, $unitSpawnList) {
+    public function __construct($age, $roundTime, $payment, $unitSpawnList) {
         $this->age = $age;
+        $this->payment = $payment;
         $this->roundTime = $roundTime;
         $this->unitSpawnList = $unitSpawnList;
     }
@@ -16,10 +18,13 @@ class SpawnRound {
             if ($i != 0) $roundName .= ', ';
             $roundName .= $unitSpawn->getName();
         }
+        if ($roundName == '') {
+            $roundName = 'feudal';
+        }
         return $roundName;
     }
 
-    public function getTotalComputedVillagerTime() {
+    public function getTotalVillagerTime() {
         $total = 0;
         foreach($this->unitSpawnList as $unitSpawn) {
             $total += 
@@ -29,7 +34,11 @@ class SpawnRound {
         return $total;
     }
 
-    public function getProductionTime() {
+    public function getVilTimePerSecond() {
+        return $this->getTotalVillagerTime() / $this->roundTime;
+    }
+
+    public function getTotalProductionTime() {
         $totalProductionTime = 0;
         foreach($this->unitSpawnList as $unitSpawn) {
             $totalProductionTime += 
@@ -39,16 +48,22 @@ class SpawnRound {
         return $totalProductionTime;
     }
 
-    public function getStats() {
-        $total_vil_time = $this->getTotalComputedVillagerTime(); 
-        $total_production_time = $this->getProductionTime();
+    public function getProductionTimePerSecond() {
+        return $this->getTotalProductionTime() / $this->roundTime;
+    }
+ 
+
+    public function getStats($i) {
         $result = array(
+            "Round Number" => $i + 1, 
             "Round Time" => $this->roundTime,
+            "Age" => $this->age,
             "Units" => $this->getRoundName(),
-            "Total Vil Time" => $total_vil_time,
-            "Total Production Times" => $total_production_time,
-            "Vil Time Per Second" => $total_vil_time / $this->roundTime,
-            "Production Time Per Second" => $total_production_time / $this->roundTime,
+            "Total Vil Time" => $this->getTotalVillagerTime(),
+            "Total Production Times" => $this->getTotalProductionTime(),
+            //"Vil Time Per Second" => $this->getVilTimePerSecond(),
+            //"Production Time Per Second" => $this->getProductionTimePerSecond(),
+            "Production Deficit" => $this->getTotalProductionTime() - $this->roundTime,
             // "UnitName" => $stat->unitName,
             // "UnitCount" => $stat->unitCount,
         );

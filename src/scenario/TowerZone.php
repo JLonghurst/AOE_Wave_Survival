@@ -33,6 +33,14 @@ class TowerZone extends PlayerRegion {
             Efft_ChangeView($this->playerId, $this->getCenter()->asArr());
             $this->act("Tower Death");
 
+        $this->trig("Enemy Town Center");
+            Efft_RemoveO($this->getEnemyId());
+            $this->create(
+                U_TOWN_CENTER, 
+                $this->getCenter()->offset(-10), 
+                $this->getEnemyId()
+            );
+
         $this->trig("Tower Death",  0, 0, 1, "111", "Do not let your tower be destroyed by the enemyId buildings");
             Cond_Timer(3);
             Cond_NotOwnU($this->playerId, 1, U_WATCH_TOWER);

@@ -138,6 +138,7 @@ function Scenario($serial) {
         if ($i % 5 == 1 && $j % 5 == 1) 
         {
         Efft_Create(1, U_MAP_REVEALER, array($i, $j));
+        Efft_Create(2, U_MAP_REVEALER, array($i, $j));
         } 
     }
     // Trig("Intro Prompt", 1, 0);

@@ -10,11 +10,10 @@ class UnitDatabase {
         foreach ($lines as $line) {
             $raw = str_getcsv($line);
             $name = $raw[0];
-            $cost = $raw[1];
-            $foodCost = $raw[2];
-            $woodCost = $raw[3];
-            $goldCost = $raw[4];
-            $createTime = $raw[5];
+            $foodCost = $raw[1];
+            $woodCost = $raw[2];
+            $goldCost = $raw[3];
+            $createTime = $raw[4];
             if ($name) {
                 $map[$name] = new UnitStats(
                     $foodCost, 
@@ -51,7 +50,7 @@ class UnitDatabase {
         fclose($file);
     }
 
-    function parseCostString(string $rawCosts, string $resourceFilter) {
+    private function parseCostString(string $rawCosts, string $resourceFilter) {
         foreach (explode(" ", $rawCosts) as $cost) {
             if (strpos($cost, $resourceFilter)) {
                 return rtrim($cost, $resourceFilter);
@@ -60,7 +59,7 @@ class UnitDatabase {
         return 0;
     }
 
-    function parseBuildTime(string $buildTime) {
+    private function parseBuildTime(string $buildTime) {
         if (!$buildTime) return 0;
         $min_sec = explode(":", $buildTime);
         return $min_sec[0]*60 + $min_sec[1];

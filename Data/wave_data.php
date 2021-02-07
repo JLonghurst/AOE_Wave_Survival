@@ -76,6 +76,7 @@
     $db = new UnitDatabase();
     //$db->refreshStats();
     $UNIT_STAT_MAP = $db->getStatMap();
+
     $UNITS = array(
         [30, array([U_MILITIA, 1])],
         [60, array([U_MILITIA, 3])],
@@ -133,40 +134,50 @@
     $UNITS_MODEL = array(
         new SpawnRound(
             T_DARK_AGE, 
-            30,
-            array(new UnitSpawn(U_MILITIA, 1))
-        ),
-        new SpawnRound(
-            T_DARK_AGE, 
-            60,
+            10,
+            100,
             array(new UnitSpawn(U_MILITIA, 3))
         ),
         new SpawnRound(
             T_DARK_AGE, 
-            60,
-            array(new UnitSpawn(U_MILITIA, 5))
-        ),
-        new SpawnRound(
-            T_DARK_AGE, 
-            60,
+            90,
+            100,
             array(
                 new UnitSpawn(U_MILITIA, 5), 
-                new UnitSpawn(U_BATTERING_RAM, 3)
+                new UnitSpawn(U_BATTERING_RAM, 1)
+            )
+        ),
+        new SpawnRound(
+            T_FEUDAL_AGE, 
+            90,
+            100,
+            array()
+        ),
+        new SpawnRound(
+            T_FEUDAL_AGE, 
+            60,
+            100,
+            array(
+                new UnitSpawn(U_ARCHER, 5), 
             )
         ),
         new SpawnRound(
             T_FEUDAL_AGE, 
             60,
-            array()
+            100,
+            array(
+                new UnitSpawn(U_SCOUT_CAVALRY, 5), 
+            )
         ),
     );
+
     //print_r($UNITS_MODEL);
-    // $fp = fopen('Data/roundStats.csv', 'w');
-    // fputcsv($fp, array_keys($UNITS_MODEL[0]->getStats()));
-    // foreach ($UNITS_MODEL as $spawnRound) {
-    //     fputcsv($fp, $spawnRound->getStats());
-    // }
-    // fclose($fp);
+    $fp = fopen('Data/roundStats.csv', 'w');
+    fputcsv($fp, array_keys($UNITS_MODEL[0]->getStats($i)));
+    foreach ($UNITS_MODEL as $i => $spawnRound) {
+        fputcsv($fp, $spawnRound->getStats($i));
+    }
+    fclose($fp);
 
     // array of entitys and spawn numbers, and a time of round
     $game_modes = array(
