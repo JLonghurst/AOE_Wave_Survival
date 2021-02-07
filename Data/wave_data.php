@@ -73,20 +73,9 @@
         return $yeet;
     }
 
-    $csvData = file_get_contents('C:\Code\AOE_Wave_Survival\Data\unitStats.csv');
-    $lines = explode(PHP_EOL, $csvData);
-    $UNIT_STAT_MAP = array();
-    foreach ($lines as $line) {
-        $raw = str_getcsv($line);
-        $name = $raw[1];
-        $createTime = $raw[2];
-        $foodCost = $raw[5];
-        $woodCost = $raw[6];
-        $goldCost = $raw[7];
-        $unitStat = new UnitStats($foodCost, $woodCost, $goldCost, $createTime);
-        $UNIT_STAT_MAP[$name] = $unitStat;
-    }
-
+    $db = new UnitDatabase();
+    //$db->refreshStats();
+    $UNIT_STAT_MAP = $db->getStatMap();
     $UNITS = array(
         [30, array([U_MILITIA, 1])],
         [60, array([U_MILITIA, 3])],
@@ -172,12 +161,12 @@
         ),
     );
     //print_r($UNITS_MODEL);
-    $fp = fopen('Data/roundStats.csv', 'w');
-    fputcsv($fp, array_keys($UNITS_MODEL[0]->getStats()));
-    foreach ($UNITS_MODEL as $spawnRound) {
-        fputcsv($fp, $spawnRound->getStats());
-    }
-    fclose($fp);
+    // $fp = fopen('Data/roundStats.csv', 'w');
+    // fputcsv($fp, array_keys($UNITS_MODEL[0]->getStats()));
+    // foreach ($UNITS_MODEL as $spawnRound) {
+    //     fputcsv($fp, $spawnRound->getStats());
+    // }
+    // fclose($fp);
 
     // array of entitys and spawn numbers, and a time of round
     $game_modes = array(
