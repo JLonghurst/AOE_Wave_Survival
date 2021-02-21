@@ -1,2 +1,9 @@
-1. add ability to validate builds for difficulty
+1. add more villager spawning to eco
+2. add age level spawning for vils
+3. color coated shop
+
+
+
+
+
 2. update UI to support multiple game modes

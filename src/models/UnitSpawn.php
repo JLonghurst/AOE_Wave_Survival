@@ -9,7 +9,10 @@ class UnitSpawn {
         $this->unitId =  $unitId;
         $this->unitCount =  $unitCount;
         $this->unitName = unitNameById($unitId);
-        $this->unitStats = $GLOBALS['UNIT_STAT_MAP'][$this->unitName];
+        //print($this->unitName."\n");
+        //print($GLOBALS['UNIT_STAT_MAP'][$this->unitName]);
+        $this->unitStats = $GLOBALS['UNIT_STAT_MAP']["$this->unitName"];
+        //print_r($this->unitStats);
         if ($this->unitStats == null) {
             print("\n no stat for name: {$this->unitName}\n");
         }

@@ -17,7 +17,7 @@
             U_ARCHER => "Archer",
             U_KNIGHT => "Knight",
             U_MILITIA => "Militia",
-            U_MAN_AT_ARMS => "Man At Arms",
+            U_MAN_AT_ARMS => "Man-at-arms",
             U_LONG_SWORDSMAN => "Long Swordsman",
             U_SKIRMISHER => "Skirmisher",
             U_ELITE_SKIRMISHER => "Elite Skirmisher",
@@ -134,31 +134,53 @@
     $UNITS_MODEL = array(
         new SpawnRound(
             T_DARK_AGE, 
-            10,
+            30,
             100,
             array(new UnitSpawn(U_MILITIA, 3))
         ),
-        new SpawnRound(
-            T_DARK_AGE, 
-            90,
-            100,
-            array(
-                new UnitSpawn(U_MILITIA, 5), 
-                new UnitSpawn(U_BATTERING_RAM, 1)
-            )
-        ),
+        // new SpawnRound(
+        //     T_DARK_AGE, 
+        //     75,
+        //     100,
+        //     array(new UnitSpawn(U_MILITIA, 5))
+        // ),
+        // new SpawnRound(
+        //     T_DARK_AGE, 
+        //     90,
+        //     100,
+        //     array(
+        //         new UnitSpawn(U_MILITIA, 7), 
+        //         new UnitSpawn(U_BATTERING_RAM, 1)
+        //     )
+        // ),
         new SpawnRound(
             T_FEUDAL_AGE, 
-            90,
+            0,
             100,
             array()
         ),
         new SpawnRound(
             T_FEUDAL_AGE, 
-            60,
+            120,
             100,
             array(
-                new UnitSpawn(U_ARCHER, 5), 
+                new UnitSpawn(U_ARCHER, 15), 
+            )
+        ),
+        new SpawnRound(
+            T_FEUDAL_AGE, 
+            120,
+            100,
+            array(
+                new UnitSpawn(U_SCOUT_CAVALRY, 15), 
+            )
+        ),
+        new SpawnRound(
+            T_FEUDAL_AGE, 
+            120,
+            100,
+            array(
+                new UnitSpawn(U_MAN_AT_ARMS, 5), 
             )
         ),
         new SpawnRound(
@@ -166,12 +188,51 @@
             60,
             100,
             array(
-                new UnitSpawn(U_SCOUT_CAVALRY, 5), 
+                new UnitSpawn(U_SCOUT_CAVALRY, 15), 
+            )
+        ),
+        new SpawnRound(
+            T_FEUDAL_AGE, 
+            120,
+            100,
+            array(
+                new UnitSpawn(U_MAN_AT_ARMS, 10), 
+            )
+        ),
+        new SpawnRound(
+            T_FEUDAL_AGE, 
+            60,
+            100,
+            array(
+                new UnitSpawn(U_SCOUT_CAVALRY, 30), 
+            )
+        ),
+        // new SpawnRound(
+        //     T_FEUDAL_AGE, 
+        //     90,
+        //     100,
+        //     array(
+        //         new UnitSpawn(U_MAN_AT_ARMS, 20),
+        //         new UnitSpawn(U_SCOUT_CAVALRY, 10), 
+        //     )
+        // ),
+        new SpawnRound(
+            T_FEUDAL_AGE, 
+            120,
+            100,
+            array(
+                new UnitSpawn(U_SKIRMISHER, 100),
+            )
+        ),
+        new SpawnRound(
+            T_FEUDAL_AGE, 
+            120,
+            100,
+            array(
+                new UnitSpawn(U_KNIGHT, 10),
             )
         ),
     );
-
-    //print_r($UNITS_MODEL);
     $fp = fopen('Data/roundStats.csv', 'w');
     fputcsv($fp, array_keys($UNITS_MODEL[0]->getStats($i)));
     foreach ($UNITS_MODEL as $i => $spawnRound) {

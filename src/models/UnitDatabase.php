@@ -33,10 +33,6 @@ class UnitDatabase {
         $file = fopen($this->CSV_NAME, 'w');
         foreach ($unitData as $unit) {
             if ($unit->cost != '-') {
-                //print($foodCost);
-                //$food = str_contains($costArray[0], "F");
-                //print_r($food);
-                //print_r($unit);
                 fputcsv($file, 
                 [
                     $unit->name,
