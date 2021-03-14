@@ -7,55 +7,13 @@ class EnemySpawnZone extends PlayerRegion {
         $this->killZoneTriggers();
         $time = 0;
         $waves = array();
-        foreach($GLOBALS['UNITS'] as $i => $roundUnits) {
-            if (is_array($roundUnits)) {
-                $time += $roundUnits[0];
-                array_push($waves, 
-                    new EnemyWave(
-                        $this->playerId, 
-                        $this->width, 
-                        $this->depth,
-                        $i + 1, 
-                        $time, 
-                        75, 
-                        $roundUnits[1]
-                    )
-                );
-            } else {
-                // age up break time
-                $time += 120;
-                $eId = $this->getEnemyId();
-                $pId = $this->playerId;
-                $age = null;
-                $this->trig($roundUnits);
-                Cond_Timer($time);
-                switch ($roundUnits) {
-                    case "Feudal Upgrade":
-                        $age = T_FEUDAL_AGE;
-                        // upgrade enemy units
-                        foreach ([
-                            $age,
-                            T_FLETCHING,
-                            T_PADDED_ARCHER_ARMOR,
-                            T_SCALE_MAIL_ARMOR
-                        ] as $r) Efft_Research($eId, $r);
-                    break;
-                    case "Castle Upgrade":
-                        $age = T_CASTLE_AGE;
-                        foreach ([
-                            $age,
-                        ] as $r) Efft_Research($eId, $r);
-                    break;
-                    case "Imperial Upgrade":
-                        $age = T_IMPERIAL_AGE;
-                        foreach ([
-                            $age,
-                        ] as $r) Efft_Research($eId, $r);
-                    break;
-                }
-                Efft_Research($pId, $age);
-            }
-        }
+        $this->trig("Enemy Town Center");
+        Efft_RemoveO($this->getEnemyId());
+        $this->create(
+            U_TOWN_CENTER, 
+            $this->origin->offset(2),
+            $this->getEnemyId()
+        );
         $spawnCenter = $this->origin;
 
         $spawnRounds = $GLOBALS['UNITS_MODEL'];

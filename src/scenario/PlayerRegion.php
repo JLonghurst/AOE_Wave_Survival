@@ -65,11 +65,15 @@ class PlayerRegion extends PlayerContext {
 
     public function placeStoreTriggersAt($storeOrigin) { }
 
-    public function createAreaRow($offsetX, $origin = null, $width = null) {
+    public function createAreaRow($offsetX, $origin = null, $width = null, $length = 1) {
         $origin = $origin != null ? $origin : $this->origin;
-        $origin = $origin->offset($offsetX);
         $width = $width != null ? $width : $this->width;
-        return AreaAdvanced($origin->asArr(), $this->orientation, $width, 1);
+        return AreaAdvanced(
+            $origin->offset($offsetX)->asArr(), 
+            $this->orientation, 
+            $width, 
+            $length
+        );
     }
 
     // renders this zone for a player

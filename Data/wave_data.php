@@ -134,7 +134,7 @@
     $UNITS_MODEL = array(
         new SpawnRound(
             T_DARK_AGE, 
-            30,
+            20,
             100,
             array(new UnitSpawn(U_MILITIA, 3))
         ),
@@ -164,28 +164,30 @@
             120,
             100,
             array(
-                new UnitSpawn(U_ARCHER, 15), 
-            )
-        ),
-        new SpawnRound(
-            T_FEUDAL_AGE, 
-            120,
-            100,
-            array(
-                new UnitSpawn(U_SCOUT_CAVALRY, 15), 
-            )
-        ),
-        new SpawnRound(
-            T_FEUDAL_AGE, 
-            120,
-            100,
-            array(
+                new UnitSpawn(U_ARCHER, 5), 
                 new UnitSpawn(U_MAN_AT_ARMS, 5), 
             )
         ),
         new SpawnRound(
             T_FEUDAL_AGE, 
-            60,
+            120,
+            100,
+            array(
+                new UnitSpawn(U_ARCHER, 15), 
+            )
+        ),
+        new SpawnRound(
+            T_FEUDAL_AGE, 
+            90,
+            100,
+            array(
+                new UnitSpawn(U_MAN_AT_ARMS, 10), 
+                new UnitSpawn(U_SKIRMISHER, 10),
+            )
+        ),
+        new SpawnRound(
+            T_FEUDAL_AGE, 
+            120,
             100,
             array(
                 new UnitSpawn(U_SCOUT_CAVALRY, 15), 

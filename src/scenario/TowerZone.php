@@ -24,22 +24,12 @@ class TowerZone extends PlayerRegion {
             Efft_KillU($this->getEnemyId(), U_MILITIA, $unitLoc);
 
         $this->setTowerElevation();
-        $this->trig("Enemy Town Center Invincible", 1, 1);
-            Cond_Timer(2);
-            $this->healEnemyBuildingAt($tcLoc);
+        
 
         $this->trig("Tower Placement");
             $this->create(U_WATCH_TOWER, $this->getCenter());
             Efft_ChangeView($this->playerId, $this->getCenter()->asArr());
             $this->act("Tower Death");
-
-        $this->trig("Enemy Town Center");
-            Efft_RemoveO($this->getEnemyId());
-            $this->create(
-                U_TOWN_CENTER, 
-                $this->getCenter()->offset(-10), 
-                $this->getEnemyId()
-            );
 
         $this->trig("Tower Death",  0, 0, 1, "111", "Do not let your tower be destroyed by the enemyId buildings");
             Cond_Timer(3);

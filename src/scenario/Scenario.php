@@ -1,7 +1,7 @@
 <?php
 function Scenario($serial) {
     global $DEBUG;
-    $DEBUG = true;
+    $DEBUG = false;
     function wallAreas($areas) {
         $maxAtX = [];
         $minAtX = [];
@@ -63,7 +63,6 @@ function Scenario($serial) {
         }
         return $res;
     }
-
     /**
      * 
      * 
@@ -110,6 +109,10 @@ function Scenario($serial) {
         SetPlayerMaxPop($playerId, 200);
         SetPlayerStartAge($playerId, "Dark");
         SetPlayerDisabilitybuildingList($playerId, $GLOBALS['BANNED_BUILDINGS']);
+
+        Trig("Delete Player $playerId");
+            Efft_RemoveO($playerId);
+
         $storeOrigin = $origin->offset($STORE_OFFSET);
         $areas = [];
         foreach ($regions as $i => $region) {
