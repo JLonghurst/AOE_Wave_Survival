@@ -9,9 +9,9 @@ class EcoZone extends PlayerRegion {
         $goldOffset = $this->getCenter()->offset(0, -$this->goldOffset);
         $lumberCamp = $this->getZoneEnd()->offset(6);
         $treeArea = AreaAdvanced(
-            $this->getZoneEnd()->asArr(), 
-            'S', 
-            $this->width, 
+            $this->getZoneEnd()->asArr(),
+            'S',
+            $this->width,
             4
         );
         $goldArea = AreaSet($goldOffset->asArr());

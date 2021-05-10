@@ -1,0 +1,64 @@
+Barracks,0,175,0,0
+Barracks,0,175,0,0
+Barracks,0,175,0,0
+Barracks,0,175,0,0
+Dock,0,150,0,0
+Dock,0,150,0,0
+Dock,0,150,0,0
+Dock,0,150,0,0
+Farm,0,60,0,0
+House,0,25,0,0
+House,0,25,0,0
+House,0,25,0,0
+House,0,25,0,0
+"Lumber Camp",0,100,0,0
+"Lumber Camp",0,100,0,0
+"Lumber Camp",0,100,0,0
+"Lumber Camp",0,100,0,0
+Mill,0,100,0,0
+Mill,0,100,0,0
+Mill,0,100,0,0
+Mill,0,100,0,0
+"Mining Camp",0,100,0,0
+"Mining Camp",0,100,0,0
+"Mining Camp",0,100,0,0
+"Mining Camp",0,100,0,0
+"Archery Range",0,175,0,0
+"Archery Range",0,175,0,0
+"Archery Range",0,175,0,0
+Blacksmith,0,150,0,0
+Blacksmith,0,150,0,0
+Blacksmith,0,150,0,0
+"Fish Trap",0,100,0,0
+Market,0,175,0,0
+Market,0,175,0,0
+Market,0,175,0,0
+Stable,0,175,0,0
+Stable,0,175,0,0
+Stable,0,175,0,0
+Castle,0,0,0,650
+Monastery,0,175,0,0
+Monastery,0,175,0,0
+"Siege Workshop",0,200,0,0
+"Siege Workshop",0,200,0,0
+"Town Center",0,275,0,100
+"Town Center",0,275,0,100
+"Town Center",0,275,0,100
+"Town Center",0,275,0,100
+University,0,200,0,0
+University,0,200,0,0
+Wonder,0,1000WSG,1000WS,1000WSG
+Outpost,0,25,0,5
+"Watch Tower",0,50,0,125
+"Guard Tower",0,50,0,125
+Keep,0,50,0,125
+"Bombard Tower",0,0,100,125
+"Palisade Wall",0,2,0,0
+"Stone Wall",0,0,0,5
+"Fortified Wall",0,0,0,5
+Gate,0,0,0,30
+"Palisade Gate",0,20,0,0
+"Stone Wall",0,0,0,5
+Gate,0,0,0,30
+Feitoria,0,0,250,250
+Harbor,0,150,0,0

@@ -75,6 +75,8 @@
 
     $db = new UnitDatabase();
     //$db->refreshStats();
+    //$db->refreshGatheringUrl();
+    //$db->refreshStructUrl();
     $UNIT_STAT_MAP = $db->getStatMap();
 
     $UNITS = array(
@@ -170,7 +172,7 @@
         ),
         new SpawnRound(
             T_FEUDAL_AGE, 
-            120,
+            90,
             100,
             array(
                 new UnitSpawn(U_ARCHER, 15), 
@@ -178,7 +180,7 @@
         ),
         new SpawnRound(
             T_FEUDAL_AGE, 
-            90,
+            120,
             100,
             array(
                 new UnitSpawn(U_MAN_AT_ARMS, 10), 

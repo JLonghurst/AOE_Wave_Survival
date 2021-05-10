@@ -1,7 +1,12 @@
 <?php
 class UnitDatabase {
     private $CSV_NAME = "Data/unitJsonData.csv"; 
+    private $STATS_CSV_NAME = "Data/structureData.csv"; 
+    private $GATHERING_CSV = "Data/gatheringData.csv"; 
+
     private $STATS_URL = "https://aoe2stats.net/stats/dlc_units.json?1.0.1&_=1612509091453";
+    private $STRUCTURE_URL = "https://aoe2stats.net/stats/dlc_structures.json?1.0.1&_=1615687802601";
+    private $GATHERING_URL = "https://aoe2stats.net/stats/dlc_gathering.json?1.0.1&_=1615687802604";
 
     function getStatMap() {
         $csvData = file_get_contents($this->CSV_NAME);
@@ -15,8 +20,8 @@ class UnitDatabase {
             $goldCost = $raw[3];
             $createTime = $raw[4];
             if ($name) {
-                $map[$name] = new UnitStats(
-                    $foodCost, 
+                $map[$name] = new UnitStats( 
+                    $foodCost,
                     $woodCost, 
                     $goldCost, 
                     $createTime
@@ -25,6 +30,46 @@ class UnitDatabase {
 
         }
         return $map;
+    }
+
+    function refreshStructUrl() {
+        $unitsHttpRespose = file_get_contents($this->STRUCTURE_URL);
+        $unitData = json_decode($unitsHttpRespose)->data;
+        $file = fopen($this->STATS_CSV_NAME, 'w');
+        foreach ($unitData as $unit) {
+            //print_r($unitData);
+            if ($unit->cost != '-') {
+                fputcsv($file, 
+                [
+                    $unit->name,
+                    $this->parseCostString($unit->cost, "F"),
+                    $this->parseCostString($unit->cost, "W"),
+                    $this->parseCostString($unit->cost, "G"),
+                    $this->parseCostString($unit->cost, "S"),
+                ]);
+            }
+        }
+        fclose($file);
+    }
+
+    function refreshGatheringUrl() {
+        $gathering = file_get_contents($this->GATHERING_URL);
+        $gatheringData = json_decode ($gathering)->data;
+        $file = fopen($this->GATHERING_CSV, 'w');
+        foreach ($gatheringData as $gatheringStat) {
+            print_r($gatheringStat);
+            fputcsv($file, 
+            [
+                $gatheringStat->type,
+                $gatheringStat->source,
+                $gatheringStat->speed,
+                $gatheringStat->note
+                // $this->parseCostString($gatheringStat->cost, "F"),
+                // $this->parseCostString($gatheringStat->cost, "W"),
+                // $this->parseCostString($gatheringStat->cost, "G"),
+            ]);
+        }
+        fclose($file);
     }
 
     function refreshStats() {
@@ -38,7 +83,6 @@ class UnitDatabase {
                     $unit->name,
                     $this->parseCostString($unit->cost, "F"),
                     $this->parseCostString($unit->cost, "W"),
-                    $this->parseCostString($unit->cost, "G"),
                     $this->parseBuildTime($unit->bt),
                 ]);
             }
@@ -52,7 +96,7 @@ class UnitDatabase {
                 return rtrim($cost, $resourceFilter);
             }
         }
-        return 0;
+        return "0";
     }
 
     private function parseBuildTime(string $buildTime) {
